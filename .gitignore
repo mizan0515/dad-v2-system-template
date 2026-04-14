@@ -1,0 +1,5 @@
+# DAD v2 template ignores
+*.tmp
+*.log
+
+# Add project-specific ignores below

@@ -1,0 +1,7 @@
+interface:
+  display_name: "DAD v2 Repeat Workflow (Auto)"
+  short_description: "자율 모드 — 판단 자동화, ESCALATE만 사용자에게"
+  default_prompt: "Use $repeat-workflow-auto to continue the active DAD v2 session in auto mode and escalate only when the safety rails require it."
+
+policy:
+  allow_implicit_invocation: false

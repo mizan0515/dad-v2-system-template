@@ -1,0 +1,57 @@
+﻿---
+description: Fully automatic Dual-Agent Dialogue v2 symmetric turns (minimal user confirmation)
+argument-hint: "[turn count, default 5]"
+---
+
+# /repeat-workflow-auto
+
+The **autonomous variant** of `/repeat-workflow`. Decides automatically even in
+ambiguous situations without asking the user. Only ESCALATE reaches the user.
+
+Note: DAD v2 is a **user-bridged protocol**. This command cannot hide the peer-agent
+invocation itself. What is automated is the judgment and convergence rules, not the
+user relay step.
+
+Use `/repeat-workflow N` when supervision is needed.
+
+## Arguments
+- `$ARGUMENTS` = number of turns to repeat (1–10). Defaults to 5 if empty.
+
+## Differences vs `/repeat-workflow` (4 overrides)
+
+1. **Minimal user confirmation** — automatic judgment except ESCALATE
+2. **Autonomous task selection** — picks the highest-value task from analysis
+3. **Automatic PASS convergence** — on full checkpoint pass, auto commit + push + PR on task branch
+4. **Auto-pivot on stagnation** — if the same checkpoint FAILs twice consecutively, auto-switch approach
+
+## Procedure
+
+1. Read `PROJECT-RULES.md` first, then read `CLAUDE.md` and `DIALOGUE-PROTOCOL.md`.
+2. Check existing session state in `Document/dialogue/state.json` (if absent, start a new session with `/dialogue-start`).
+3. Automatically analyze current project state (git log, tests, console)
+4. Autonomously execute `$ARGUMENTS` (or 5) turns:
+   - Auto-generate Contract → execute work → self-iterate → generate peer prompt (including mandatory tail) → user relay → next-turn convergence decision
+   - Save Turn Packet as `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
+   - The peer prompt must include these 6 elements:
+     - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md.`
+     - `Session: Document/dialogue/state.json`
+     - `Previous turn: Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
+     - Concrete task instruction (`handoff.next_task + handoff.context`)
+     - A ~10-line relay-friendly summary
+     - The mandatory tail block below
+   - Append this tail block at the end of the peer prompt:
+     ```
+     ---
+     If you find any gap or improvement, fix it directly and report the diff.
+     If nothing needs to change, state explicitly: "No change needed, PASS".
+     Important: do not evaluate leniently. Never say "looks good". Cite concrete evidence and examples.
+     ```
+5. On finish, record the session summary under `Document/dialogue/sessions/{session-id}/`
+
+## Safety Guards
+
+1. Hard turn limit: stop immediately when exceeded
+2. Three consecutive FAILs on the same checkpoint → auto-stop + report to user
+3. Unresolvable compile error → stop + report to user
+4. No direct push to main branch
+5. Two consecutive turns of quality stagnation → auto-pivot to a different approach
