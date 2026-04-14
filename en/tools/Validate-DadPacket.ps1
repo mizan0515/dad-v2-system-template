@@ -156,9 +156,9 @@ function Test-RequiresDisconfirmation {
     }
 
     $keywords = @(
-        '정합', '일관', '동기화', '문서', 'wireframe', 'alignment', 'align',
-        'consistent', 'consistency', 'density', '밀도', '같은', 'shared', 'sync',
-        'match', 'same', 'category', 'wording', '용어'
+        'wireframe', 'alignment', 'align',
+        'consistent', 'consistency', 'density', 'shared', 'sync',
+        'match', 'same', 'category', 'wording'
     )
 
     foreach ($keyword in $keywords) {

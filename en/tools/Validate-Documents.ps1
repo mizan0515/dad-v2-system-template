@@ -1,7 +1,8 @@
-# UTF-8 BOM rationale: Korean-language documents in this template risk being
-# misdetected as CP949 (legacy Windows Korean encoding) by editors and tools.
-# Enforcing UTF-8 BOM prevents silent mojibake. Cross-platform teams that
-# prefer BOM-less UTF-8 may relax this check for non-Document/ files.
+# UTF-8 BOM rationale: this template enforces UTF-8 BOM on Document/ and root
+# guide files to keep encoding explicit across Windows/Unix editors and avoid
+# silent mojibake when non-ASCII content is later added. Teams that prefer
+# BOM-less UTF-8 may relax this check for non-Document/ files. The companion
+# Korean variant (ko/) additionally relies on BOM to prevent CP949 misdetection.
 
 param(
     [switch]$Fix,

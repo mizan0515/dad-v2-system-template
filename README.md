@@ -23,10 +23,15 @@ Both variants ship the same:
 ## Quick Start
 
 ```bash
-# Copy one variant into your target repo
+# macOS / Linux / Git Bash
 cp -r en/. /path/to/target-repo/     # English variant
-# or
 cp -r ko/. /path/to/target-repo/     # Korean/English mixed variant
+```
+
+```powershell
+# Windows PowerShell (includes hidden folders like .agents, .claude, .prompts)
+robocopy en C:\path\to\target-repo /E
+robocopy ko C:\path\to\target-repo /E
 ```
 
 Then follow the variant's `README.md` (`en/README.md` or `ko/README.md`) for adaptation steps.
