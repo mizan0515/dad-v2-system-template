@@ -93,7 +93,8 @@ handoff:
   next_task: ""
   context: ""
   questions: []
-  ready_for_peer_verification: true
+  prompt_artifact: ""
+  ready_for_peer_verification: false
   suggest_done: false
   done_reason: ""
 "@

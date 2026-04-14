@@ -19,6 +19,18 @@ Additional expectations:
 - Lower-priority docs must not redefine higher-priority canonical terms.
 - If a stale summary is found, update it in the same task when practical.
 
+## Current Repository Reality
+
+Before trusting older summaries, migration notes, or archived prompts, fill in the live-reality facts for this repository. At minimum, document:
+
+- which modules or directories already exist versus remain planned
+- which states, services, or files are authoritative right now
+- which older summaries are known to drift or lag behind the code
+- any naming that is easy to confuse in code review or handoff
+- any tool/runtime assumptions that are true in this repository today
+
+If a document and the live repository disagree, prefer the live repository and update the stale document in the same task when practical.
+
 ## Project Facts
 
 Fill in the facts that agents must never guess about, for example:
@@ -49,6 +61,16 @@ Specify the minimum verification standard for this repository, for example:
 - Focused lint / test / smoke before broad suite
 - How to report blocked verification
 - What counts as sufficient evidence
+
+## DAD Operating Reality
+
+If this repository adopts DAD v2, record the local operating assumptions explicitly, for example:
+
+- whether short session-scoped slices are preferred over one long umbrella session
+- when a fresh session should supersede the current one
+- which validators are mandatory before `suggest_done: true`
+- how summaries, work-session notes, or research/inventory files must be updated
+- any repository-local bootstrap or environment checks that must happen before the first session
 
 ## Git Rules
 

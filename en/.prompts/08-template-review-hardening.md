@@ -10,6 +10,7 @@ Check whether this template itself is generic enough for reuse in other reposito
 Read PROJECT-RULES.md first.
 Then read CLAUDE.md and DIALOGUE-PROTOCOL.md.
 Then read AGENTS.md.
+If `DIALOGUE-PROTOCOL.md` points to `Document/DAD/` references, read the needed reference files there too.
 Also read .prompts/01-system-audit.md, .prompts/07-existing-project-migration.md, and .prompts/10-system-doc-sync.md first.
 
 Context:
@@ -33,6 +34,7 @@ Execution rules:
 - If you find a real FAIL, fix it directly and show the diff.
 - If no change is needed for an audit item, say exactly "No change needed, PASS".
 - If a gap cannot be closed in the same turn, make it the first explicit next task.
+- If a required file is too large to read in one call, read it by section or chunk instead of stopping.
 
 Output format:
 For each audit item, report PASS / FAIL / WARN with file paths, line references, current value, expected value, and diff for any fix.

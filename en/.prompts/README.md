@@ -16,6 +16,7 @@ Prompt library for the reusable DAD v2 template.
 | `08-template-review-hardening.md` | Review and harden the template itself before reuse |
 | `09-emergency-session-recovery.md` | Force-close and manually recover a broken DAD session safely |
 | `10-system-doc-sync.md` | System-doc / validator / command sync prompt |
+| `11-dad-operations-audit.md` | Audit live DAD behavior, validator blind spots, and prompt-pack drift |
 
 ## Usage
 
@@ -29,4 +30,5 @@ Prompt library for the reusable DAD v2 template.
 - Use `08-template-review-hardening.md` when Claude Code should audit and improve the template repository itself.
 - Use `09-emergency-session-recovery.md` when `state.json`, turn packets, or validators are broken enough that normal resume flow is unsafe.
 - Use `10-system-doc-sync.md` whenever a task changes protocol docs, validators, session schema, slash commands, skills, or prompt templates.
+- Use `11-dad-operations-audit.md` after real sessions accumulate and you need to audit the live DAD operating model rather than only the template design.
 - Add project-specific prompts here as the target repository grows.

@@ -34,6 +34,23 @@ function Get-RegexMatch {
     return [regex]::Match($Text, $Pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)
 }
 
+function Normalize-YamlScalar {
+    param(
+        [string]$Value
+    )
+
+    if ($null -eq $Value) {
+        return $null
+    }
+
+    $normalized = $Value.Trim()
+    if ($normalized.Length -ge 2 -and $normalized.StartsWith('"') -and $normalized.EndsWith('"')) {
+        return $normalized.Substring(1, $normalized.Length - 2)
+    }
+
+    return $normalized
+}
+
 function Get-YamlChildBlock {
     param(
         [string]$Text,
@@ -172,12 +189,14 @@ function Test-RequiresDisconfirmation {
 
 function Validate-PacketFile {
     param(
-        [string]$Path
+        [string]$Path,
+        [string]$ResolvedRoot
     )
 
     $issues = New-Object System.Collections.Generic.List[string]
     $text = Get-Content -Path $Path -Raw -Encoding UTF8
     $descriptions = Get-CheckpointDescriptions -Text $text
+    $meta = Parse-PacketMetadata -Path $Path -Text $text
 
     $requiredTopLevel = @(
         '^type:\s*turn\s*$',
@@ -222,6 +241,62 @@ function Validate-PacketFile {
     }
 
     $handoffSuggest = Get-RegexMatch -Text $text -Pattern '^\s+suggest_done:\s*(?<value>true|false)\s*$'
+    $handoffReady = Get-RegexMatch -Text $text -Pattern '^\s+ready_for_peer_verification:\s*(?<value>true|false)\s*$'
+    $nextTaskMatch = Get-RegexMatch -Text $text -Pattern '^\s+next_task:\s*(?<value>[^\r\n]*)\s*$'
+    $contextMatch = Get-RegexMatch -Text $text -Pattern '^\s+context:\s*(?<value>[^\r\n]*)\s*$'
+    $nextTask = if ($nextTaskMatch.Success) { Normalize-YamlScalar -Value $nextTaskMatch.Groups["value"].Value } else { $null }
+    $context = if ($contextMatch.Success) { Normalize-YamlScalar -Value $contextMatch.Groups["value"].Value } else { $null }
+    $promptArtifactMatch = Get-RegexMatch -Text $text -Pattern '^\s+prompt_artifact:\s*(?<value>[^\r\n]*)\s*$'
+    $promptArtifact = if ($promptArtifactMatch.Success) { Normalize-YamlScalar -Value $promptArtifactMatch.Groups["value"].Value } else { $null }
+
+    if ($handoffReady.Success -and $handoffReady.Groups["value"].Value -eq "true") {
+        if ([string]::IsNullOrWhiteSpace($nextTask)) {
+            Add-Issue -List $issues -Message "handoff.ready_for_peer_verification=true requires handoff.next_task."
+        }
+
+        if ([string]::IsNullOrWhiteSpace($context)) {
+            Add-Issue -List $issues -Message "handoff.ready_for_peer_verification=true requires handoff.context."
+        }
+
+        if ([string]::IsNullOrWhiteSpace($promptArtifact)) {
+            Add-Issue -List $issues -Message "handoff.ready_for_peer_verification=true requires handoff.prompt_artifact."
+        }
+        else {
+            $resolvedPromptArtifact = Join-Path $ResolvedRoot $promptArtifact
+            if (-not (Test-Path $resolvedPromptArtifact)) {
+                Add-Issue -List $issues -Message "handoff.prompt_artifact references missing file: $promptArtifact"
+            }
+            else {
+                $expectedDir = "Document/dialogue/sessions/$($meta.SessionId)/"
+                $expectedFile = "turn-{0:00}-handoff.md" -f $meta.Turn
+                if ($promptArtifact.Replace('\', '/') -notlike "$expectedDir*") {
+                    Add-Issue -List $issues -Message "handoff.prompt_artifact must stay under $expectedDir"
+                }
+                elseif ([System.IO.Path]::GetFileName($promptArtifact) -ne $expectedFile) {
+                    Add-Issue -List $issues -Message "handoff.prompt_artifact must use the canonical file name '$expectedFile'."
+                }
+
+                $promptText = Get-Content -Path $resolvedPromptArtifact -Raw -Encoding UTF8
+                $expectedPreviousTurn = "Previous turn: Document/dialogue/sessions/$($meta.SessionId)/turn-{0:00}.yaml" -f $meta.Turn
+                $requiredPromptPatterns = @(
+                    'Read PROJECT-RULES\.md first\.',
+                    '^Session:\s+Document/dialogue/state\.json\s*$',
+                    ('^' + [regex]::Escape($expectedPreviousTurn) + '\s*$'),
+                    '^---\s*$',
+                    '^If you find any gap or improvement, fix it directly and report the diff\.\s*$',
+                    '^If nothing needs to change, state explicitly: "No change needed, PASS"\.\s*$',
+                    '^Important: do not evaluate leniently\. Never say "looks good"\. Cite concrete evidence and examples\.\s*$'
+                )
+
+                foreach ($pattern in $requiredPromptPatterns) {
+                    if (-not [regex]::IsMatch($promptText, $pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)) {
+                        Add-Issue -List $issues -Message "handoff prompt artifact '$promptArtifact' is missing required content matching: $pattern"
+                    }
+                }
+            }
+        }
+    }
+
     if ($handoffSuggest.Success -and $handoffSuggest.Groups["value"].Value -eq "true") {
         if (-not (Test-Regex -Text $text -Pattern '^\s+ready_for_peer_verification:\s*true\s*$')) {
             Add-Issue -List $issues -Message "handoff.suggest_done=true requires handoff.ready_for_peer_verification=true."
@@ -265,7 +340,7 @@ function Validate-PacketFile {
     }
 
     return [PSCustomObject]@{
-        Meta = Parse-PacketMetadata -Path $Path -Text $text
+        Meta = $meta
         Issues = $issues
     }
 }
@@ -457,7 +532,7 @@ if (-not $packetFiles -or $packetFiles.Count -eq 0) {
 }
 
 foreach ($packet in $packetFiles) {
-    $result = Validate-PacketFile -Path $packet
+    $result = Validate-PacketFile -Path $packet -ResolvedRoot $resolvedRoot
     $target = if ($SessionId) { $SessionId } elseif ($AllSessions) { $null } else { $state.session_id }
     if ($target -and $result.Meta.SessionId -ne $target) {
         continue

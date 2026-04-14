@@ -6,7 +6,8 @@ This file is auto-loaded by Claude Code and defines Claude Code-specific behavio
 
 Related files:
 - `PROJECT-RULES.md` — shared rules for all agents
-- `DIALOGUE-PROTOCOL.md` — Dual-Agent Dialogue v2 protocol
+- `DIALOGUE-PROTOCOL.md` — thin-root Dual-Agent Dialogue v2 protocol
+- `Document/DAD/` — detailed DAD schema, lifecycle, and validation references when the root protocol points there
 - `AGENTS.md` — Codex-specific contract
 
 ## Repository Guardrails
@@ -38,19 +39,21 @@ When collaborating with Codex under `DIALOGUE-PROTOCOL.md`:
 3. if Turn 2+, review the peer turn against the checkpoints, then execute your own slice
 4. self-iterate before handoff
 5. save the turn packet in `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
-6. output a Codex prompt using the required handoff format
-7. if system-doc drift remains, close it in the same turn or make it the first next task
+6. save the exact Codex prompt in `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md` and record that path in `handoff.prompt_artifact`
+7. output the same Codex prompt using the required handoff format
+8. if system-doc drift remains, close it in the same turn or make it the first next task
 
 ## Codex Handoff Rules
 
 Every Codex prompt must include:
 
-1. `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md.`
+1. `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD/ references, read the needed files there too.`
 2. `Session: Document/dialogue/state.json`
 3. `Previous turn: Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
 4. Concrete task instruction from `handoff.next_task + handoff.context`
 5. A relay-friendly summary
 6. The mandatory tail block:
+7. The exact text also saved to `handoff.prompt_artifact`
 
 ```
 ---

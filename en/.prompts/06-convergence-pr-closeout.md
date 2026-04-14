@@ -17,7 +17,7 @@ When the session is almost over, prevent missing the convergence verdict, summar
 3. Confirm `Document/dialogue/state.json` and the session-scoped `state.json` accurately reflect `converged` status.
 4. Confirm both `summary.md` and the named summary for the closed session exist.
 5. Re-run minimum validation.
-   - `tools/Validate-Documents.ps1 -IncludeRootGuides -IncludeAgentDocs -Fix`
+- `tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -Fix`
    - `tools/Validate-DadPacket.ps1 -Root . -AllSessions`
 6. Check branch state and confirm no unrelated changes were mixed in.
 7. Handle commit, push, PR, and merge per the policy in the root contract docs.

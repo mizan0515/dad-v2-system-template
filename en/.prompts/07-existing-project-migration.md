@@ -19,9 +19,10 @@ When introducing DAD v2 into a repository that is already running, organize the 
 2. Fill in `PROJECT-RULES.md` with the repo's actual rules.
 3. Adjust `AGENTS.md`, `CLAUDE.md`, and `DIALOGUE-PROTOCOL.md` for the repo environment.
 4. Align `.claude/commands/`, `.agents/skills/`, `.prompts/`, and the `Document/` operations guide with the root contract.
-5. Make `tools/Validate-Documents.ps1 -IncludeRootGuides -IncludeAgentDocs -Fix` pass first.
-6. If needed, run a smoke test with one sample session: `New-DadSession`, `New-DadTurn`, `Validate-DadPacket`.
-7. Before any live work, re-run the system audit prompt (`01`) to re-check overall coherence.
+5. Apply a project-specific Codex skill namespace, validate `.agents/skills/` metadata, and then register the Codex Desktop skills for the repository (`Set-CodexSkillNamespace`, then `Validate-CodexSkillMetadata`, then `Register-CodexSkills`).
+6. Make `tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -Fix` pass first.
+7. If needed, run a smoke test with one sample session: `New-DadSession`, `New-DadTurn`, `Validate-DadPacket`.
+8. Before any live work, re-run the system audit prompt (`01`) to re-check overall coherence.
 
 ## Merge Strategy
 
@@ -31,7 +32,7 @@ When the existing repo already has `CLAUDE.md`, `AGENTS.md`, `.claude/commands/`
 2. **Append** the DAD v2 sections to the existing files without deleting existing rules.
 3. Explicitly list the conflict points (e.g. git policy, branch rules, verification procedures) and decide which side to follow.
 4. Record the decision in `PROJECT-RULES.md` (which rules were inherited, which replaced).
-5. After the merge, make `tools/Validate-Documents.ps1 -IncludeRootGuides -IncludeAgentDocs -Fix` pass.
+5. After the merge, make `tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -Fix` pass.
 
 ## Rollback Path
 

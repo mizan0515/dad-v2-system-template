@@ -1,6 +1,8 @@
 ﻿# Dual-Agent Dialogue Protocol (DAD v2)
 
-Codex와 Claude Code가 대칭 턴으로 협업하는 프로토콜.
+Codex와 Claude Code의 대칭 턴 협업을 위한 얇은 루트 프로토콜 문서.
+
+이 루트 문서는 한 번에 읽을 수 있는 크기로 유지한다. 상세 스키마, lifecycle, validation 규칙은 `Document/DAD/` 아래에 둔다.
 
 ## Core Principles
 
@@ -16,115 +18,27 @@ Codex와 Claude Code가 대칭 턴으로 협업하는 프로토콜.
 - Turn 1: analyze state, draft contract, execute first slice, self-iterate, write packet, output peer prompt.
 - Turn 2+: review the peer turn against checkpoints, execute your own slice, self-iterate, write packet, output peer prompt.
 
-## Turn Packet Shape
+## Mandatory Rules
 
-```yaml
-type: turn
-from: [codex | claude-code]
-turn: 1
-session_id: "YYYY-MM-DD-task"
+- `my_work`는 필수다.
+- `suggest_done`, `done_reason`는 `handoff` 안에만 둔다.
+- `suggest_done: true`면 `done_reason`이 필요하다.
+- 닫힌 세션에는 summary artifact가 필요하다.
+- 루트 `Document/dialogue/state.json`은 현재 활성 세션만 추적한다.
+- 목표나 검증 표면이 크게 바뀌면 하나의 긴 umbrella session보다 짧은 session-scoped slice를 우선한다.
+- 새 세션이 현재 세션을 대체하면 이전 세션을 `superseded` 또는 다른 종료 상태로 명시적으로 닫는다.
 
-contract:
-  status: "proposed | accepted | amended"
-  checkpoints: []
-  amendments: []
+## Peer Prompt Rules
 
-peer_review:
-  project_analysis: "..."        # Turn 1 only (optional on Turn 2+)
-  task_model_review:              # Turn 2+ only (optional on Turn 1)
-    status: "aligned | amended | superseded"
-    coverage_gaps: []
-    scope_creep: []
-    risk_followups: []
-    amendments: []
-  checkpoint_results: {}          # always required
-  issues_found: []                # always required
-  fixes_applied: []               # always required
+모든 peer prompt는 아래를 포함해야 한다.
 
-my_work:
-  task_model: {}                  # recommended for large scope; optional otherwise
-  plan: ""
-  changes:
-    files_modified: []
-    files_created: []
-    summary: ""
-  self_iterations: 0
-  evidence:
-    commands: []
-    artifacts: []
-  verification: ""
-  open_risks: []
-  confidence: "high | medium | low"
-
-handoff:
-  next_task: ""
-  context: ""
-  questions: []
-  ready_for_peer_verification: true
-  suggest_done: false
-  done_reason: ""
-```
-
-Rules:
-
-- `my_work` is mandatory.
-- `suggest_done` and `done_reason` live only under `handoff`.
-- If `suggest_done: true`, `done_reason` is required.
-- Closed sessions require a summary artifact.
-
-## Shared State
-
-State file: `Document/dialogue/state.json`
-
-Session directory: `Document/dialogue/sessions/{session-id}/`
-
-Root `state.json` tracks the currently active session only. When a new session is created, the root state is overwritten. Previous session state is preserved in `sessions/{session-id}/state.json`.
-
-Expected contents per session directory:
-
-- `turn-{N}.yaml`
-- `state.json`
-- `summary.md` for session-scoped summary
-- `YYYY-MM-DD-{session-id}-summary.md` for named summary on closed sessions
-
-### State Schema
-
-`state.json` (both root and session-scoped) must contain:
-
-| Field | Required | Values |
-|-------|----------|--------|
-| `protocol_version` | always | `"dad-v2"` |
-| `session_id` | always | string |
-| `session_status` | always | `active` \| `converged` \| `superseded` \| `abandoned` |
-| `relay_mode` | always | `"user-bridged"` |
-| `mode` | always | `autonomous` \| `hybrid` \| `supervised` |
-| `scope` | always | `small` \| `medium` \| `large` |
-| `current_turn` | always | integer (0 before first turn) |
-| `max_turns` | always | integer |
-| `last_agent` | after first turn | `codex` \| `claude-code` |
-| `contract_status` | always | `proposed` \| `accepted` \| `amended` |
-| `packets` | always | array of relative paths |
-| `closed_reason` | when status != `active` | string |
-| `superseded_by` | when status == `superseded` | session-id string |
-
-### Context Overflow
-
-When an agent's context window fills mid-session:
-
-1. Save the current work as a partial turn packet (set `confidence: low` and note the overflow in `open_risks`).
-2. Start a fresh context and use `.prompts/04-세션-복구-재개.md` to resume safely.
-3. The recovery prompt will re-read state.json and the latest turn packet to restore working context.
-
-## Prompt Generation Rules
-
-Every peer prompt must include:
-
-1. `Read PROJECT-RULES.md first. Then read {agent-contract}.md and DIALOGUE-PROTOCOL.md.`
+1. `Read PROJECT-RULES.md first. Then read {agent-contract}.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
 2. `Session: Document/dialogue/state.json`
 3. `Previous turn: Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
-4. concrete `handoff.next_task + handoff.context`
-5. 10줄 안팎의 relay-friendly 요약
-6. the mandatory tail block
+4. 구체적인 `handoff.next_task + handoff.context`
+5. relay-friendly summary
+6. mandatory tail block
+7. `handoff.prompt_artifact`에 저장한 동일한 프롬프트 본문
 
 Mandatory tail:
 
@@ -137,28 +51,19 @@ Mandatory tail:
 
 ## Validation
 
-Use:
-
-- `tools/Validate-Documents.ps1 -IncludeRootGuides -IncludeAgentDocs -Fix`
+- `tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -Fix`
 - `tools/Validate-DadPacket.ps1 -Root . -AllSessions`
 
-Minimum moments to run validation:
+최소 검증 시점:
 
-1. after saving a turn packet
-2. before recording `suggest_done: true`
-3. before resuming a recovered session
+1. turn packet 저장 직후
+2. `handoff.prompt_artifact`가 가리키는 프롬프트 artifact 저장 직후
+3. `suggest_done: true`를 기록하기 직전
+4. 복구 세션을 재개하기 직전
 
-## Prompt References
+## Detailed References
 
-Base references in this template:
-
-- `.prompts/01-시스템-감사.md`
-- `.prompts/02-세션-시작-컨트랙트-작성.md`
-- `.prompts/03-턴-종료-핸드오프-정리.md`
-- `.prompts/04-세션-복구-재개.md`
-- `.prompts/05-의견차이-디베이트-정리.md`
-- `.prompts/06-수렴-종료-PR-정리.md`
-- `.prompts/07-기존-프로젝트-도입-마이그레이션.md`
-- `.prompts/08-템플릿-검토-개선.md`
-- `.prompts/09-비상-세션-복구.md`
-- `.prompts/10-시스템-문서-정합성-동기화.md`
+- `Document/DAD/README.md`
+- `Document/DAD/PACKET-SCHEMA.md`
+- `Document/DAD/STATE-AND-LIFECYCLE.md`
+- `Document/DAD/VALIDATION-AND-PROMPTS.md`

@@ -1,11 +1,11 @@
 ﻿---
-description: Dual-Agent Dialogue v2 대칭 턴 완전자동 실행 (사용자 확인 최소)
+description: Dual-Agent Dialogue v2 대칭 턴 judgment-light 실행 (사용자 확인 최소, relay 유지)
 argument-hint: "[턴 수, 기본 5]"
 ---
 
 # /repeat-workflow-auto
 
-`/repeat-workflow`의 **자율 모드 변형**. 모호한 상황에서도 사용자에게 묻지 않고
+`/repeat-workflow`의 **judgment-light 변형**. 모호한 상황에서도 사용자에게 묻지 않고
 자동 판단한다. ESCALATE만 사용자에게 전달한다.
 
 주의: 현재 DAD v2는 **user-bridged 프로토콜**이다. 이 커맨드도 상대 에이전트 호출 자체를 숨기지 못한다.
@@ -25,19 +25,21 @@ argument-hint: "[턴 수, 기본 5]"
 
 ## 절차
 
-1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `CLAUDE.md`와 `DIALOGUE-PROTOCOL.md`를 읽는다.
+1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `CLAUDE.md`와 `DIALOGUE-PROTOCOL.md`를 읽는다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
 2. `Document/dialogue/state.json`에서 기존 세션 상태를 확인한다 (없으면 `/dialogue-start`로 새 세션을 시작).
 3. 프로젝트 현재 상태를 자동 분석 (git log, 테스트, 콘솔)
 4. `$ARGUMENTS`턴 (또는 5턴) 자율 실행:
-   - Contract 자동 생성 → 작업 실행 → 자체 반복 → 상대용 프롬프트 생성(필수 꼬리말 포함) → 사용자 relay → 다음 턴 수렴 판단
+   - Contract 자동 생성 → 작업 실행 → 자체 반복 → 상대용 프롬프트 artifact 저장 → 상대용 프롬프트 생성(필수 꼬리말 포함) → 사용자 relay → 다음 턴 수렴 판단
    - Turn Packet은 `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`에 저장
-   - 상대용 프롬프트에는 반드시 아래 6개 요소 포함:
-     - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md.`
+   - 정확한 상대용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification`는 `handoff.next_task`, `handoff.context`가 확정되기 전까지 false로 둔다.
+   - 상대용 프롬프트에는 반드시 아래 7개 요소 포함:
+     - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
      - `Session: Document/dialogue/state.json`
      - `Previous turn: Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
      - 구체적 작업 지시 (`handoff.next_task + handoff.context`)
      - 10줄 안팎의 relay-friendly 요약
      - 아래 필수 꼬리말 블록
+     - `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장한 동일한 본문
    - 상대용 프롬프트 끝에 반드시 아래 꼬리말 포함:
      ```
      ---

@@ -20,14 +20,16 @@ Repeatedly execute a symmetric-turn collaboration session under the Dual-Agent D
    a. **Peer work feedback**: PASS/FAIL against Contract checkpoints
    b. **Own plan + execution**: run the self-iteration loop
    c. **Save Turn Packet**: `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
-   d. **Generate peer prompt**: output the prompt body to the user (no CLI wrapper).
-      The prompt must include these 6 elements:
-      - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md.`
+   d. **Save peer prompt artifact**: write the exact prompt body to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`, record that path in `handoff.prompt_artifact`, and keep `handoff.ready_for_peer_verification` false until `handoff.next_task` and `handoff.context` are final.
+   e. **Generate peer prompt**: output the same prompt body to the user (no CLI wrapper).
+      The prompt must include these 7 elements:
+      - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
       - `Session: Document/dialogue/state.json`
       - `Previous turn: Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
       - Concrete task instruction (`handoff.next_task + handoff.context`)
       - A ~10-line relay-friendly summary
       - The mandatory tail block below
+      - The exact same body saved in `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`
       Append this tail block at the end of the prompt:
       ```
       ---
@@ -35,8 +37,8 @@ Repeatedly execute a symmetric-turn collaboration session under the Dual-Agent D
       If nothing needs to change, state explicitly: "No change needed, PASS".
       Important: do not evaluate leniently. Never say "looks good". Cite concrete evidence and examples.
       ```
-   e. **User shares Codex result**: feedback → next turn
-   f. **Convergence decision**: all checkpoints PASS + both sides done → commit + push to task branch + open PR
+   f. **User shares Codex result**: feedback → next turn
+   g. **Convergence decision**: all checkpoints PASS + both sides done → commit + push to task branch + open PR
 5. On finish, record the session summary under `Document/dialogue/sessions/{session-id}/`.
 
 ## Safety Guards

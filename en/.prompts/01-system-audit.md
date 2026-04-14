@@ -6,7 +6,7 @@ Check whether the DAD v2 system and its related docs, tooling, and session artif
 
 ## Baseline Audit Items
 
-1. Rule conflicts between `AGENTS.md`, `CLAUDE.md`, and `DIALOGUE-PROTOCOL.md`
+1. Rule conflicts between `AGENTS.md`, `CLAUDE.md`, `DIALOGUE-PROTOCOL.md`, and any detailed `Document/DAD/` references that the root protocol points to
 2. Whether paths and procedures in `.claude/commands/`, `.agents/skills/`, and `.prompts/` match the root contract docs
 3. Whether the `Document/dialogue/` session structure matches validator expectations
 4. Whether `tools/Validate-DadPacket.ps1` and `tools/Validate-Documents.ps1` behave correctly against real artifacts

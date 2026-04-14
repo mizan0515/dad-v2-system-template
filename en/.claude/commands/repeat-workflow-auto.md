@@ -1,11 +1,11 @@
 ﻿---
-description: Fully automatic Dual-Agent Dialogue v2 symmetric turns (minimal user confirmation)
+description: Judgment-light Dual-Agent Dialogue v2 symmetric turns (minimal user confirmation, user relay still required)
 argument-hint: "[turn count, default 5]"
 ---
 
 # /repeat-workflow-auto
 
-The **autonomous variant** of `/repeat-workflow`. Decides automatically even in
+The **judgment-light variant** of `/repeat-workflow`. Decides automatically even in
 ambiguous situations without asking the user. Only ESCALATE reaches the user.
 
 Note: DAD v2 is a **user-bridged protocol**. This command cannot hide the peer-agent
@@ -26,19 +26,21 @@ Use `/repeat-workflow N` when supervision is needed.
 
 ## Procedure
 
-1. Read `PROJECT-RULES.md` first, then read `CLAUDE.md` and `DIALOGUE-PROTOCOL.md`.
+1. Read `PROJECT-RULES.md` first, then read `CLAUDE.md` and `DIALOGUE-PROTOCOL.md`. If `DIALOGUE-PROTOCOL.md` points to `Document/DAD/` references, read the needed files there too.
 2. Check existing session state in `Document/dialogue/state.json` (if absent, start a new session with `/dialogue-start`).
 3. Automatically analyze current project state (git log, tests, console)
 4. Autonomously execute `$ARGUMENTS` (or 5) turns:
-   - Auto-generate Contract → execute work → self-iterate → generate peer prompt (including mandatory tail) → user relay → next-turn convergence decision
+   - Auto-generate Contract → execute work → self-iterate → save peer prompt artifact → generate peer prompt (including mandatory tail) → user relay → next-turn convergence decision
    - Save Turn Packet as `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
-   - The peer prompt must include these 6 elements:
-     - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md.`
+   - Save the exact peer prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`, record that path in `handoff.prompt_artifact`, and leave `handoff.ready_for_peer_verification` false until `handoff.next_task` and `handoff.context` are final.
+   - The peer prompt must include these 7 elements:
+     - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
      - `Session: Document/dialogue/state.json`
      - `Previous turn: Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
      - Concrete task instruction (`handoff.next_task + handoff.context`)
      - A ~10-line relay-friendly summary
      - The mandatory tail block below
+     - The exact same body saved in `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`
    - Append this tail block at the end of the peer prompt:
      ```
      ---

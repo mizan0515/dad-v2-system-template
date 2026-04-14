@@ -13,7 +13,7 @@ Start a symmetric-turn Dialogue session between Codex and Claude Code.
 
 ## Procedure
 
-1. Read `PROJECT-RULES.md` first, then read `CLAUDE.md` and `DIALOGUE-PROTOCOL.md` to internalize the v2 protocol.
+1. Read `PROJECT-RULES.md` first, then read `CLAUDE.md` and `DIALOGUE-PROTOCOL.md` to internalize the v2 protocol. If `DIALOGUE-PROTOCOL.md` points to `Document/DAD/` references, read the needed files there too.
 2. Analyze the current project state:
    - `git log --oneline -10` (recent work flow)
    - `git status` (current changes)
@@ -29,14 +29,16 @@ Start a symmetric-turn Dialogue session between Codex and Claude Code.
    c. Self-iteration loop: self-verify against checkpoints, repeat until satisfied
    d. Save the Turn Packet as `Document/dialogue/sessions/{session-id}/turn-01.yaml`
 5. Initialize/update `Document/dialogue/state.json`.
-6. Output a Codex-facing prompt to the user (prompt body only, no CLI wrapper).
-   The prompt must include these 6 elements:
-   - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md.`
+6. Save the exact Codex-facing prompt to `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`, record that path in `handoff.prompt_artifact`, and set `handoff.ready_for_peer_verification: true` only after `handoff.next_task` and `handoff.context` are final.
+7. Output the same Codex-facing prompt to the user (prompt body only, no CLI wrapper).
+   The prompt must include these 7 elements:
+   - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
    - `Session: Document/dialogue/state.json`
    - `Previous turn: Document/dialogue/sessions/{session-id}/turn-01.yaml`
    - Concrete task instruction (`handoff.next_task + handoff.context`)
    - A ~10-line relay-friendly summary
    - The mandatory tail block below
+   - The exact same body saved in `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`
    Append this tail block at the end of the prompt:
    ```
    ---

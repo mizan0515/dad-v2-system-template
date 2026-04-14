@@ -13,7 +13,7 @@ Codex와 Claude Code 간 대칭 턴 기반 Dialogue 세션을 시작한다.
 
 ## 절차
 
-1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `CLAUDE.md`와 `DIALOGUE-PROTOCOL.md`를 읽어 v2 프로토콜을 숙지한다.
+1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `CLAUDE.md`와 `DIALOGUE-PROTOCOL.md`를 읽어 v2 프로토콜을 숙지한다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
 2. 현재 프로젝트 상태를 분석한다:
    - `git log --oneline -10` (최근 작업 흐름)
    - `git status` (현재 변경 사항)
@@ -29,14 +29,16 @@ Codex와 Claude Code 간 대칭 턴 기반 Dialogue 세션을 시작한다.
    c. 자체 반복 루프: 체크포인트 기준 자체 검증, 만족할 때까지 반복
    d. Turn Packet을 `Document/dialogue/sessions/{session-id}/turn-01.yaml`로 저장
 5. `Document/dialogue/state.json` 초기화/업데이트.
-6. Codex용 프롬프트를 사용자에게 출력한다 (CLI 래퍼 없이 프롬프트 본문만).
-   프롬프트에는 반드시 아래 6개 요소를 포함한다:
-   - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md.`
+6. 정확한 Codex용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification: true`는 `handoff.next_task`, `handoff.context`가 확정된 뒤에만 설정한다.
+7. 같은 Codex용 프롬프트를 사용자에게 출력한다 (CLI 래퍼 없이 프롬프트 본문만).
+   프롬프트에는 반드시 아래 7개 요소를 포함한다:
+   - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
    - `Session: Document/dialogue/state.json`
    - `Previous turn: Document/dialogue/sessions/{session-id}/turn-01.yaml`
    - 구체적 작업 지시 (`handoff.next_task + handoff.context`)
    - 10줄 안팎의 relay-friendly 요약
    - 아래 필수 꼬리말 블록
+   - `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장한 동일한 본문
    프롬프트 끝에 반드시 아래 꼬리말을 포함한다:
    ```
    ---

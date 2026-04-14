@@ -9,10 +9,14 @@ When DAD infrastructure or system rules change during work, prevent drift betwee
 - `AGENTS.md`
 - `CLAUDE.md`
 - `DIALOGUE-PROTOCOL.md`
+- `Document/DAD/` detailed protocol references when the root protocol is thin
 - `.claude/commands/`
 - `.agents/skills/`
 - `.prompts/`
 - Operations guides under `Document/`
+- `tools/Register-CodexSkills.ps1`
+- `tools/Set-CodexSkillNamespace.ps1`
+- `tools/Validate-CodexSkillMetadata.ps1`
 - `tools/Validate-DadPacket.ps1`
 - `tools/Validate-Documents.ps1`
 
@@ -32,7 +36,9 @@ Include this prompt as a default reference when any of the following apply:
 2. List every system file that must change.
 3. Change them all within the same task where possible.
 4. After the changes, re-run at minimum:
-   - `tools/Validate-Documents.ps1 -IncludeRootGuides -IncludeAgentDocs -Fix`
+   - `tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -Fix`
+   - `tools/Set-CodexSkillNamespace.ps1 -Namespace "<repo-prefix>"` when skill naming rules changed
+   - `tools/Validate-CodexSkillMetadata.ps1 -Root .`
    - `tools/Validate-DadPacket.ps1 -Root . -AllSessions`
 5. If they cannot all be closed in the same turn, record system-doc sync as the first item in `handoff.next_task`.
 
