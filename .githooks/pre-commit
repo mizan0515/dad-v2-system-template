@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+cd "$repo_root"
+
+if command -v pwsh >/dev/null 2>&1; then
+  runner="pwsh"
+elif command -v powershell >/dev/null 2>&1; then
+  runner="powershell"
+elif command -v powershell.exe >/dev/null 2>&1; then
+  runner="powershell.exe"
+else
+  echo "PowerShell not found. Install pwsh 7.2+ or ensure powershell(.exe) is on PATH before using root .githooks/pre-commit." >&2
+  exit 1
+fi
+
+"$runner" -ExecutionPolicy Bypass -File tools/Validate-TemplateVariants.ps1 -RunVariantValidators
+"$runner" -ExecutionPolicy Bypass -File en/tools/Validate-Documents.ps1 -Root en -IncludeRootGuides -IncludeAgentDocs -ReportLargeDocs -ReportLargeRootGuides -FailOnLargeDocs
+"$runner" -ExecutionPolicy Bypass -File en/tools/Validate-CodexSkillMetadata.ps1 -Root en
+"$runner" -ExecutionPolicy Bypass -File en/tools/Lint-StaleTerms.ps1
+"$runner" -ExecutionPolicy Bypass -File en/tools/Validate-DadPacket.ps1 -Root en -AllSessions
+"$runner" -ExecutionPolicy Bypass -File ko/tools/Validate-Documents.ps1 -Root ko -IncludeRootGuides -IncludeAgentDocs -ReportLargeDocs -ReportLargeRootGuides -FailOnLargeDocs
+"$runner" -ExecutionPolicy Bypass -File ko/tools/Validate-CodexSkillMetadata.ps1 -Root ko
+"$runner" -ExecutionPolicy Bypass -File ko/tools/Lint-StaleTerms.ps1
+"$runner" -ExecutionPolicy Bypass -File ko/tools/Validate-DadPacket.ps1 -Root ko -AllSessions
