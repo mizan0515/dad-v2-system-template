@@ -1,21 +1,21 @@
-﻿---
-name: repeat-workflow-auto
-description: "Explicit-invocation skill for DAD v2 symmetric-turn autonomous-mode repetition. Use when directly invoked via `$repeat-workflow-auto`. Automates judgment; only ESCALATE reaches the user. Triggers: \"auto repeat\", \"autonomous mode\". Note: the user relay step is not automated."
+---
+name: dadtpl-repeat-workflow-auto
+description: "Explicit-invocation skill for DAD v2 symmetric-turn autonomous-mode repetition. Use when directly invoked via `$dadtpl-repeat-workflow-auto`. Automates judgment; only ESCALATE reaches the user. Triggers: \"auto repeat\", \"autonomous mode\". Note: the user relay step is not automated."
 ---
 
-# Repeat Workflow Auto (autonomous mode)
+# Repeat Workflow Auto (judgment-light mode)
 
-The **autonomous-mode variant** of `$repeat-workflow`. Decides automatically even in ambiguous situations without asking the user.
+The **judgment-light variant** of `$dadtpl-repeat-workflow`. Decides automatically even in ambiguous situations without asking the user.
 
 ## Invocation
 
 - This skill is **explicit-invocation only**, not auto-suggested.
-- Example: `Continue the current DAD v2 session in autonomous mode via $repeat-workflow-auto.`
-- If no session exists yet, call `$dialogue-start` first.
+- Example: `Continue the current DAD v2 session in autonomous mode via $dadtpl-repeat-workflow-auto.`
+- If no session exists yet, call `$dadtpl-dialogue-start` first.
 
 Note: DAD v2 is a **user-bridged protocol**. What is automated is the judgment and convergence rules, not the user relay step.
 
-## Differences vs `$repeat-workflow` (4 overrides)
+## Differences vs `$dadtpl-repeat-workflow` (4 overrides)
 
 1. **Minimal user confirmation** — automatic judgment except ESCALATE
 2. **Autonomous task selection** — picks the highest-value task from analysis
@@ -25,7 +25,7 @@ Note: DAD v2 is a **user-bridged protocol**. What is automated is the judgment a
 ## Procedure
 
 1. Read `PROJECT-RULES.md` first, then read `AGENTS.md` and `DIALOGUE-PROTOCOL.md`.
-2. Check existing session state in `Document/dialogue/state.json` (if absent, call `$dialogue-start` first).
+2. Check existing session state in `Document/dialogue/state.json` (if absent, call `$dadtpl-dialogue-start` first).
 3. Automatically analyze the current project state (git log, tests, console).
 4. Autonomous execution:
    - Auto-generate Contract → execute work → self-iterate → generate peer prompt → user relay → next-turn convergence decision

@@ -15,6 +15,8 @@ else
   exit 1
 fi
 
-"$runner" -ExecutionPolicy Bypass -File tools/Validate-Documents.ps1 -IncludeRootGuides -IncludeAgentDocs
+"$runner" -ExecutionPolicy Bypass -File tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -ReportLargeDocs -ReportLargeRootGuides -FailOnLargeDocs
+"$runner" -ExecutionPolicy Bypass -File tools/Validate-CodexSkillMetadata.ps1 -Root .
+"$runner" -ExecutionPolicy Bypass -File tools/Register-CodexSkills.ps1 -Root . -CodexHome "$repo_root/.git/.codex-hook-validate" -ValidateOnly
 "$runner" -ExecutionPolicy Bypass -File tools/Lint-StaleTerms.ps1
 "$runner" -ExecutionPolicy Bypass -File tools/Validate-DadPacket.ps1 -Root . -AllSessions

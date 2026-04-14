@@ -3,8 +3,12 @@
 # silent mojibake when non-ASCII content is later added. Teams that prefer
 # BOM-less UTF-8 may relax this check for non-Document/ files. The companion
 # Korean variant (ko/) additionally relies on BOM to prevent CP949 misdetection.
+# Exception: Codex runtime skill files under .agents/skills/*/SKILL.md and
+# .agents/skills/*/agents/openai.yaml must stay UTF-8 without BOM so Desktop
+# loaders see YAML/frontmatter at byte 0.
 
 param(
+    [string]$Root,
     [switch]$Fix,
     [switch]$IncludeRootGuides,
     [switch]$IncludeAgentDocs,
@@ -17,38 +21,41 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 $cp949 = [System.Text.Encoding]::GetEncoding(949)
-$repoRoot = (Resolve-Path '.').Path
+$defaultRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$repoRoot = if ($Root) { (Resolve-Path -LiteralPath $Root).Path } else { $defaultRepoRoot }
 $normalizedRepoRoot = $repoRoot.Replace('/', '\').TrimEnd('\')
 
 function Get-DocumentFiles {
     $files = @()
+    $documentRoot = Join-Path $repoRoot 'Document'
 
-    if (Test-Path 'Document') {
+    if (Test-Path -LiteralPath $documentRoot) {
         $files += @(
-            Get-ChildItem -Path 'Document' -Recurse -File -Filter '*.md' | Select-Object -ExpandProperty FullName
+            Get-ChildItem -Path $documentRoot -Recurse -File -Filter '*.md' | Select-Object -ExpandProperty FullName
         )
     }
 
     if ($IncludeRootGuides) {
         $files += @(
-            Get-ChildItem -Path '.' -File -Filter '*.md' | Select-Object -ExpandProperty FullName
+            Get-ChildItem -Path $repoRoot -File -Filter '*.md' | Select-Object -ExpandProperty FullName
         )
     }
 
     if ($IncludeAgentDocs) {
-        $includePatterns = @(
-            '.agents\skills\*.md',
-            '.claude\commands\*.md',
-            '.prompts\*.md'
+        $includeDirectories = @(
+            '.agents\skills',
+            '.claude\commands',
+            '.prompts'
         )
 
-        foreach ($pattern in $includePatterns) {
-            $parent = Split-Path $pattern -Parent
-            if (Test-Path $parent) {
+        foreach ($relativeDirectory in $includeDirectories) {
+            $directory = Join-Path $repoRoot $relativeDirectory
+            if (Test-Path -LiteralPath $directory) {
                 $files += @(
-                    Get-ChildItem -Recurse -File -Path $pattern | Select-Object -ExpandProperty FullName
+                    Get-ChildItem -Path $directory -Recurse -File -Filter '*.md' | Select-Object -ExpandProperty FullName
                 )
             }
         }
@@ -64,6 +71,10 @@ function Test-HasBom([byte[]]$Bytes) {
 function Test-RequiresBom([string]$Path) {
     $normalized = (Resolve-Path -LiteralPath $Path).Path.Replace('/', '\')
 
+    if (Test-RequiresNoBom -Path $Path) {
+        return $false
+    }
+
     if ($normalized -match '\\Document\\') {
         return $true
     }
@@ -76,6 +87,37 @@ function Test-RequiresBom([string]$Path) {
     return $normalized -match '\\\.agents\\skills\\' -or
         $normalized -match '\\\.claude\\commands\\' -or
         $normalized -match '\\\.prompts\\'
+}
+
+function Test-RequiresNoBom([string]$Path) {
+    $normalized = (Resolve-Path -LiteralPath $Path).Path.Replace('/', '\')
+
+    return $normalized -match '\\\.agents\\skills\\[^\\]+\\SKILL\.md$' -or
+        $normalized -match '\\\.agents\\skills\\[^\\]+\\agents\\openai\.ya?ml$'
+}
+
+function Get-TargetEncoding([string]$Path) {
+    if (Test-RequiresNoBom -Path $Path) {
+        return $utf8NoBom
+    }
+
+    if (Test-RequiresBom -Path $Path) {
+        return $utf8Bom
+    }
+
+    return $utf8NoBom
+}
+
+function Get-BomIssue([string]$Path, [bool]$HasBom) {
+    if ((Test-RequiresNoBom -Path $Path) -and $HasBom) {
+        return 'unexpected-bom'
+    }
+
+    if ((Test-RequiresBom -Path $Path) -and -not $HasBom) {
+        return 'missing-bom'
+    }
+
+    return $null
 }
 
 function LooksLikeLocalReference([string]$Reference) {
@@ -255,8 +297,9 @@ function Resolve-DocumentText([byte[]]$Bytes, [string]$Path) {
 function Get-Issues([string]$Path, [string]$Text, [bool]$HasBom, [string]$SourceEncoding) {
     $issues = New-Object System.Collections.Generic.List[string]
 
-    if ((Test-RequiresBom -Path $Path) -and -not $HasBom) {
-        $issues.Add('missing-bom')
+    $bomIssue = Get-BomIssue -Path $Path -HasBom $HasBom
+    if ($bomIssue) {
+        $issues.Add($bomIssue)
     }
 
     if ($SourceEncoding -eq 'cp949') {
@@ -292,7 +335,7 @@ $results = foreach ($file in Get-DocumentFiles) {
 
     if ($Fix) {
         $normalized = $resolved.Text.Replace([string][char]0, '')
-        [System.IO.File]::WriteAllText($file, $normalized, $utf8Bom)
+        [System.IO.File]::WriteAllText($file, $normalized, (Get-TargetEncoding -Path $file))
         $bytes = [System.IO.File]::ReadAllBytes($file)
         $resolved = Resolve-DocumentText -Bytes $bytes -Path $file
     }

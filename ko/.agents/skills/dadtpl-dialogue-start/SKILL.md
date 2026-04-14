@@ -1,6 +1,6 @@
-﻿---
-name: dialogue-start
-description: "Claude Code와의 DAD v2 대칭 턴 대화 세션을 시작하는 명시 호출 전용 스킬이다. `$dialogue-start`로 직접 호출할 때 사용한다. medium/large 작업에서 외부 비판적 리뷰가 가치 있을 때 사용한다. 단일 에이전트로 충분한 small 작업에서는 사용하지 않는다. 트리거: \"대화 세션 시작\", \"dialogue start\", \"Claude Code와 협업\"."
+---
+name: dadtpl-dialogue-start
+description: "Claude Code와의 DAD v2 대칭 턴 대화 세션을 시작하는 명시 호출 전용 스킬이다. `$dadtpl-dialogue-start`로 직접 호출할 때 사용한다. medium/large 작업에서 외부 비판적 리뷰가 가치 있을 때 사용한다. 단일 에이전트로 충분한 small 작업에서는 사용하지 않는다. 트리거: \"대화 세션 시작\", \"dialogue start\", \"Claude Code와 협업\"."
 ---
 
 # Dialogue Start (Codex가 Turn 1)
@@ -10,17 +10,17 @@ Codex(이 에이전트)가 Turn 1을 수행하고 Claude Code용 프롬프트를
 ## 호출 방식
 
 - 이 스킬은 자동 제안이 아니라 **명시 호출 전용**이다.
-- 사용 예시: `$dialogue-start로 DAD v2 세션을 시작해라.`
+- 사용 예시: `$dadtpl-dialogue-start로 DAD v2 세션을 시작해라.`
 
 ## 전제
 
 - 이 스킬을 실행하는 에이전트는 **Codex** 역할이다.
 - 계약 파일은 `AGENTS.md`이다 (Claude Code는 `CLAUDE.md`).
-- 상대(Claude Code)용 프롬프트를 생성할 때 `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md.`로 시작한다.
+- 상대(Claude Code)용 프롬프트를 생성할 때 `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`로 시작한다.
 
 ## 절차
 
-1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `AGENTS.md`와 `DIALOGUE-PROTOCOL.md`를 읽어 v2 프로토콜을 숙지한다.
+1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `AGENTS.md`와 `DIALOGUE-PROTOCOL.md`를 읽어 v2 프로토콜을 숙지한다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
 2. 현재 프로젝트 상태를 분석한다:
    - `git log --oneline -10` (최근 작업 흐름)
    - `git status` (현재 변경 사항)
@@ -41,7 +41,7 @@ Codex(이 에이전트)가 Turn 1을 수행하고 Claude Code용 프롬프트를
    - `last_agent: "codex"` (Turn 1 시작자)
 6. Claude Code용 프롬프트를 사용자에게 출력 (CLI 래퍼 없이 본문만).
    프롬프트에는 반드시 아래 6개 요소를 포함한다:
-   - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md.`
+   - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
    - `Session: Document/dialogue/state.json`
    - `Previous turn: Document/dialogue/sessions/{session-id}/turn-01.yaml`
    - 구체적 작업 지시 (`handoff.next_task + handoff.context`)

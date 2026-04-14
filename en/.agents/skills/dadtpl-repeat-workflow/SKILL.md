@@ -1,6 +1,6 @@
-﻿---
-name: repeat-workflow
-description: "Explicit-invocation skill to repeat DAD v2 symmetric turns. Use when directly invoked via `$repeat-workflow`. Executes the next turn of an ongoing dialogue session. Triggers: \"next turn\", \"repeat workflow\", \"continue turn\", \"continue session\". Do not use if no session exists."
+---
+name: dadtpl-repeat-workflow
+description: "Explicit-invocation skill to repeat DAD v2 symmetric turns. Use when directly invoked via `$dadtpl-repeat-workflow`. Executes the next turn of an ongoing dialogue session. Triggers: \"next turn\", \"repeat workflow\", \"continue turn\", \"continue session\". Do not use if no session exists."
 ---
 
 # Repeat Workflow (symmetric-turn repetition)
@@ -10,13 +10,13 @@ Execute the next turn of an ongoing DAD v2 session.
 ## Invocation
 
 - This skill is **explicit-invocation only**, not auto-suggested.
-- Example: `Run the next turn of the current DAD v2 session via $repeat-workflow.`
-- If no session exists yet, call `$dialogue-start` first.
+- Example: `Run the next turn of the current DAD v2 session via $dadtpl-repeat-workflow.`
+- If no session exists yet, call `$dadtpl-dialogue-start` first.
 
 ## Procedure
 
 1. Read `PROJECT-RULES.md` first, then read `AGENTS.md` and `DIALOGUE-PROTOCOL.md`.
-2. Check existing session state in `Document/dialogue/state.json` (if absent, direct the user to `$dialogue-start`).
+2. Check existing session state in `Document/dialogue/state.json` (if absent, direct the user to `$dadtpl-dialogue-start`).
 3. Read the previous Turn Packet (`Document/dialogue/sessions/{session-id}/turn-{N}.yaml`).
 4. Perform the current turn:
    a. **Peer work feedback**: PASS/FAIL + evidence against Contract checkpoints

@@ -1,21 +1,21 @@
-﻿---
-name: repeat-workflow-auto
-description: "DAD v2 대칭 턴 자율 모드 반복용 명시 호출 전용 스킬이다. `$repeat-workflow-auto`로 직접 호출할 때 사용한다. 판단을 자동화하고 ESCALATE만 사용자에게 전달한다. 트리거: \"자동 반복\", \"auto repeat\", \"자율 모드\". 주의: user relay 단계는 자동화되지 않는다."
+---
+name: dadtpl-repeat-workflow-auto
+description: "DAD v2 대칭 턴 자율 모드 반복용 명시 호출 전용 스킬이다. `$dadtpl-repeat-workflow-auto`로 직접 호출할 때 사용한다. 판단을 자동화하고 ESCALATE만 사용자에게 전달한다. 트리거: \"자동 반복\", \"auto repeat\", \"자율 모드\". 주의: user relay 단계는 자동화되지 않는다."
 ---
 
-# Repeat Workflow Auto (자율 모드)
+# Repeat Workflow Auto (judgment-light 모드)
 
-`$repeat-workflow`의 **자율 모드 변형**. 모호한 상황에서도 사용자에게 묻지 않고 자동 판단한다.
+`$dadtpl-repeat-workflow`의 **judgment-light 변형**. 모호한 상황에서도 사용자에게 묻지 않고 자동 판단한다.
 
 ## 호출 방식
 
 - 이 스킬은 자동 제안이 아니라 **명시 호출 전용**이다.
-- 사용 예시: `$repeat-workflow-auto로 현재 DAD v2 세션을 자율 모드로 계속 진행해라.`
-- 세션이 아직 없다면 먼저 `$dialogue-start`를 호출한다.
+- 사용 예시: `$dadtpl-repeat-workflow-auto로 현재 DAD v2 세션을 자율 모드로 계속 진행해라.`
+- 세션이 아직 없다면 먼저 `$dadtpl-dialogue-start`를 호출한다.
 
 주의: 현재 DAD v2는 **user-bridged 프로토콜**이다. 자동화되는 것은 판단과 수렴 규칙이지, 사용자 relay 단계가 아니다.
 
-## $repeat-workflow와의 차이 (4가지 override)
+## $dadtpl-repeat-workflow와의 차이 (4가지 override)
 
 1. **사용자 확인 최소화** — ESCALATE 외에는 자동 판단
 2. **작업 선택 자율화** — 분석 결과에 따라 가장 가치 있는 작업을 자동 선택
@@ -25,7 +25,7 @@ description: "DAD v2 대칭 턴 자율 모드 반복용 명시 호출 전용 스
 ## 절차
 
 1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `AGENTS.md`와 `DIALOGUE-PROTOCOL.md`를 읽는다.
-2. `Document/dialogue/state.json`에서 기존 세션 상태를 확인한다 (없으면 먼저 `$dialogue-start`를 호출한다).
+2. `Document/dialogue/state.json`에서 기존 세션 상태를 확인한다 (없으면 먼저 `$dadtpl-dialogue-start`를 호출한다).
 3. 프로젝트 현재 상태를 자동 분석 (git log, 테스트, 콘솔).
 4. 자율 실행:
    - Contract 자동 생성 → 작업 실행 → 자체 반복 → 상대용 프롬프트 생성 → 사용자 relay → 다음 턴 수렴 판단
