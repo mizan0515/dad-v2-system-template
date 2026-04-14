@@ -2,6 +2,16 @@
 
 `Document/dialogue/`는 live DAD v2 세션 산출물을 보관한다.
 
+아직 초기 설정 단계라면 첫 실제 세션을 만들기 직전까지는 이 폴더를 깊게 읽지 않아도 된다.
+
+템플릿은 의도적으로 live 세션 데이터를 포함하지 않는다. `tools/New-DadSession.ps1`로 첫 세션을 만든 뒤부터 이 폴더가 중요해진다.
+
+## 먼저 봐야 할 핵심
+
+- `state.json`은 현재 활성 세션 하나만 추적한다
+- `sessions/{session-id}/`는 그 세션의 durable artifact를 보관한다
+- 각 턴에는 `turn-{N}.yaml`과 짝이 맞는 `turn-{N}-handoff.md`가 모두 필요하다
+
 ## 예상 구조
 
 - `state.json`

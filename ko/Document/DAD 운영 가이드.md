@@ -4,6 +4,8 @@
 
 이 문서는 다른 프로젝트에서 DAD v2 템플릿을 처음 켤 때 필요한 최소 운영 순서를 설명한다.
 
+처음 성공 경로만 빠르게 따라가려면 먼저 `README.md`를 보고, 초기 설정이 끝난 뒤 이 문서를 읽는 편이 낫다.
+
 ## 운영 모델
 
 - DAD v2는 **user-bridged** 워크플로우다. auto 모드는 질문과 수렴 마찰을 줄일 뿐, 사용자 relay 단계를 제거하지 않는다.
@@ -25,11 +27,12 @@
 2. 필요하면 `AGENTS.md`, `CLAUDE.md`의 git / verification 정책을 조정한다.
 3. 기존 저장소에 도입하는 경우 `.prompts/07-기존-프로젝트-도입-마이그레이션.md`를 먼저 사용해 충돌 지점을 정리한다.
 4. macOS, Linux, Git Bash에서는 `pwsh` 7.2+가 설치되어 있는지 확인한다. Windows에서는 `tools/*.sh` wrapper나 pre-commit hook을 쓰기 전에 `pwsh` 7.2+ 또는 `powershell`이 PATH에 있는지 확인한다.
-5. 이 저장소용 Codex 스킬 namespace를 설정한다.
-6. 이 저장소용 Codex Desktop 스킬을 한 번 등록한다.
-7. 문서 검증을 한 번 실행한다.
-8. 첫 세션을 생성한다.
-9. Turn 1 packet을 만들고 작업을 시작한다.
+5. 문서 검증을 한 번 실행한다.
+6. 이 저장소용 Codex 스킬 namespace를 설정한다.
+7. Codex 스킬 메타데이터를 검증한다.
+8. 이 저장소용 Codex Desktop 스킬을 한 번 등록한다.
+9. 첫 세션을 생성한다.
+10. Turn 1 packet을 만들고 작업을 시작한다.
 
 참고:
 - 아래 예시는 `pwsh` 기준이다.
@@ -62,6 +65,12 @@ pwsh -File tools/New-DadTurn.ps1 `
 pwsh -File tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -Fix
 ```
 
+등록 전에 저장소 전용 namespace를 적용한다:
+
+```powershell
+pwsh -File tools/Set-CodexSkillNamespace.ps1 -Namespace "your-project-prefix"
+```
+
 커밋 또는 등록 전에 스킬 메타데이터를 검증한다:
 
 ```powershell
@@ -78,12 +87,6 @@ pwsh -File tools/Register-CodexSkills.ps1 -Root . -CodexHome .git/.codex-hook-va
 
 이 경로는 link나 manifest를 만들지 않고 registration 시점의 경로/충돌 로직만 검증한다.
 예약된 템플릿 namespace `dadtpl-`가 그대로 남아 있으면 이 dry-run은 의도적으로 실패한다. 샘플 pre-commit 훅을 켜기 전에 먼저 프로젝트 namespace를 적용해야 한다.
-
-등록 전에 저장소 전용 namespace를 적용한다:
-
-```powershell
-pwsh -File tools/Set-CodexSkillNamespace.ps1 -Namespace "your-project-prefix"
-```
 
 저장소 루트 밖에서 validator를 호출하면 `-Root`에 저장소 절대 경로를 명시한다.
 

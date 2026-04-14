@@ -1,23 +1,23 @@
-﻿# Shared Project Rules
+﻿# 공통 프로젝트 규칙
 
-This file is the shared rule layer for all agents in this repository.
+이 파일은 이 저장소에서 모든 에이전트가 함께 따르는 공통 규칙 레이어다.
 
-Replace the placeholders below with project-specific truth before relying on the template in production.
+템플릿을 실제 프로젝트에 쓰기 전에, 아래 플레이스홀더를 반드시 그 프로젝트의 실제 사실로 바꿔야 한다.
 
 ## Source Of Truth
 
-If documents conflict, define your own priority order here. Example:
+문서가 서로 충돌할 때 어떤 순서로 우선할지 이 섹션에 적는다. 예시는 다음과 같다.
 
 1. Core gameplay / product spec
 2. Development plan
 3. UI / UX spec
 4. Feature-specific design notes
 
-Additional expectations:
+추가 기대사항:
 
-- Prefer live files over stale summaries or chat notes.
-- Lower-priority docs must not redefine higher-priority canonical terms.
-- If a stale summary is found, update it in the same task when practical.
+- 오래된 요약이나 채팅 메모보다 live 파일을 우선한다.
+- 우선순위가 낮은 문서는 상위 canonical term을 다시 정의하면 안 된다.
+- stale summary를 발견하면 가능하면 같은 작업에서 같이 갱신한다.
 
 ## Current Repository Reality
 
@@ -33,7 +33,7 @@ Additional expectations:
 
 ## Project Facts
 
-Fill in the facts that agents must never guess about, for example:
+에이전트가 절대 추측하면 안 되는 사실을 채워 넣는다. 예시는 다음과 같다.
 
 - Genre / product type
 - Current milestone
@@ -43,7 +43,7 @@ Fill in the facts that agents must never guess about, for example:
 
 ## Guardrails
 
-Document the hard rules that every agent must preserve, for example:
+모든 에이전트가 반드시 지켜야 하는 하드 규칙을 적는다. 예시는 다음과 같다.
 
 - What must remain data-driven
 - Which services own authoritative state
@@ -55,7 +55,7 @@ Document the hard rules that every agent must preserve, for example:
 
 ## Verification Expectations
 
-Specify the minimum verification standard for this repository, for example:
+이 저장소에서 요구하는 최소 검증 기준을 적는다. 예시는 다음과 같다.
 
 - Narrowest useful test first
 - Focused lint / test / smoke before broad suite
@@ -74,7 +74,7 @@ Specify the minimum verification standard for this repository, for example:
 
 ## Git Rules
 
-Specify the repository's git policy, for example:
+이 저장소의 git 정책을 적는다. 예시는 다음과 같다.
 
 - Work on a task branch, not `main`
 - Commit and push after meaningful verified changes

@@ -29,6 +29,27 @@ This repository is a starter, not a live project by itself. The normal flow is:
 3. register the Codex skills
 4. start live DAD sessions and record turns as work happens
 
+## Start With This, Not Everything
+
+If you are new to the template, do not try to read every file first.
+
+Read in this order:
+
+1. this `README.md`
+2. `PROJECT-RULES.md`
+3. `AGENTS.md` and `CLAUDE.md`
+4. `DIALOGUE-PROTOCOL.md`
+5. `Document/DAD/` only when the protocol tells you to go there
+
+If you only want the first successful setup, the critical path is:
+
+1. fill in `PROJECT-RULES.md`
+2. run document validation
+3. set a project-specific skill namespace
+4. validate Codex skill metadata
+5. register the Codex Desktop skills
+6. create the first session and the first turn
+
 ## Included
 
 - Root contracts for Codex and Claude Code
@@ -103,7 +124,15 @@ Why this matters:
 
 Use a short repository-specific prefix such as `acg-` or another stable project identifier.
 
-### 6. Register The Codex Desktop Skills
+### 6. Validate Codex Skill Metadata
+
+```powershell
+pwsh -File tools/Validate-CodexSkillMetadata.ps1 -Root .
+```
+
+Run this before registration or before enabling the sample hook. It catches namespace drift, BOM problems in runtime skill files, and malformed OpenAI metadata before those issues become harder to diagnose.
+
+### 7. Register The Codex Desktop Skills
 
 ```powershell
 pwsh -File tools/Register-CodexSkills.ps1
@@ -124,11 +153,11 @@ Keep the skill runtime files strict:
 - `.agents/skills/*/SKILL.md` must be UTF-8 without BOM and begin with `---` at byte 0
 - `.agents/skills/*/agents/openai.yaml` must be UTF-8 without BOM, single-document YAML, and ASCII-safe for Desktop display metadata
 
-### 7. Add Project-Specific Prompts If Needed
+### 8. Add Project-Specific Prompts If Needed
 
 If the repository needs more prompts than the shipped pack, add them under `.prompts/`. Keep frequently read root files thin and move detailed operational references into focused documents under `Document/`.
 
-### 8. Create The First Session
+### 9. Create The First Session
 
 ```powershell
 pwsh -File tools/New-DadSession.ps1 `
@@ -140,7 +169,7 @@ pwsh -File tools/New-DadSession.ps1 `
 
 This creates the session scaffolding under `Document/dialogue/`. Pick a session ID that is stable and readable.
 
-### 9. Create The First Turn
+### 10. Create The First Turn
 
 ```powershell
 pwsh -File tools/New-DadTurn.ps1 `
@@ -151,7 +180,7 @@ pwsh -File tools/New-DadTurn.ps1 `
 
 Create one turn file per actual agent turn. Prefer generating the packet skeleton with the helper instead of hand-writing it from scratch.
 
-### 10. Record The Exact Handoff Prompt
+### 11. Record The Exact Handoff Prompt
 
 On every turn closeout:
 
@@ -195,6 +224,7 @@ For shells that prefer `bash`/`sh`, use the wrapper alongside each PowerShell sc
 ```bash
 ./tools/Validate-Documents.sh -IncludeRootGuides -IncludeAgentDocs -Fix
 ./tools/Set-CodexSkillNamespace.sh -Namespace "your-project-prefix"
+./tools/Validate-CodexSkillMetadata.sh -Root .
 ./tools/Register-CodexSkills.sh
 ./tools/New-DadSession.sh -SessionId "YYYY-MM-DD-your-task" -TaskSummary "Describe the task"
 ```
@@ -224,6 +254,7 @@ The hook's registration dry-run intentionally fails while the reserved template 
 - Do not use the template repository itself as a live session workspace.
 - Do not leave `PROJECT-RULES.md` in placeholder form after copying.
 - Do not skip skill namespace replacement before registration.
+- Do not skip metadata validation before registration or hook enablement.
 - Do not assume Codex Desktop will discover `.agents/skills/` automatically.
 - Do not pre-seed fake dialogue sessions in the template.
 - Do not forget to save the exact handoff prompt artifact for each turn.

@@ -4,6 +4,8 @@
 
 This document describes the minimum operating sequence needed when enabling the DAD v2 template in another project for the first time.
 
+If you only want the shortest successful onboarding path, follow `README.md` first and come here after the initial setup works.
+
 ## Operating Model
 
 - DAD v2 is a **user-bridged** workflow. Auto mode reduces questions and convergence friction; it does not remove the relay step.
@@ -25,11 +27,12 @@ This document describes the minimum operating sequence needed when enabling the 
 2. Adjust the git / verification policy in `AGENTS.md` and `CLAUDE.md` if needed.
 3. When introducing into an existing repository, first use `.prompts/07-existing-project-migration.md` to resolve conflict points.
 4. On macOS, Linux, and Git Bash, verify `pwsh` 7.2+ is installed. On Windows, ensure either `pwsh` 7.2+ or `powershell` is available on PATH before relying on `tools/*.sh` wrappers or the pre-commit hook.
-5. Set the Codex skill namespace for this repository.
-6. Register the Codex Desktop skills once for this repository.
-7. Run document validation once.
-8. Create the first session.
-9. Create the Turn 1 packet and start work.
+5. Run document validation once.
+6. Set the Codex skill namespace for this repository.
+7. Validate Codex skill metadata.
+8. Register the Codex Desktop skills once for this repository.
+9. Create the first session.
+10. Create the Turn 1 packet and start work.
 
 Notes:
 - The examples below assume `pwsh`.
@@ -62,6 +65,12 @@ After document changes:
 pwsh -File tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -Fix
 ```
 
+Apply a project-specific namespace before registration:
+
+```powershell
+pwsh -File tools/Set-CodexSkillNamespace.ps1 -Namespace "your-project-prefix"
+```
+
 Validate skill metadata before registration or commit:
 
 ```powershell
@@ -78,12 +87,6 @@ pwsh -File tools/Register-CodexSkills.ps1 -Root . -CodexHome .git/.codex-hook-va
 
 This validates registration-time path and collision logic without creating links or manifests.
 If the reserved template namespace `dadtpl-` is still active, this dry-run fails by design. Apply a project namespace before turning on the sample pre-commit hook.
-
-Apply a project-specific namespace before registration:
-
-```powershell
-pwsh -File tools/Set-CodexSkillNamespace.ps1 -Namespace "your-project-prefix"
-```
 
 If you invoke the validator from outside the repository root, pass an explicit root path:
 

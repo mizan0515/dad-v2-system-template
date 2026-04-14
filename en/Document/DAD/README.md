@@ -2,6 +2,16 @@
 
 Detailed DAD protocol references live here instead of staying in one monolithic root contract.
 
+Most users do not need to read every file here during the first setup.
+
+Read this folder only when the root `DIALOGUE-PROTOCOL.md` no longer gives enough detail.
+
+## Read This Folder When
+
+- packet fields or required artifacts are unclear
+- session lifecycle or closeout status is unclear
+- validator expectations or prompt artifact rules need an exact reference
+
 ## Why These Files Are Split
 
 - Agent harnesses and file-reading tools can hit token or file-size limits on large Markdown files.

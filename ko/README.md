@@ -31,6 +31,27 @@ Codex와 Claude Code가 대칭 턴으로 협업하는 Dual-Agent Dialogue v2 워
 3. Codex 스킬을 등록한다.
 4. 세션을 열고 턴을 기록하면서 운영한다.
 
+## 처음에는 이것만 읽으면 된다
+
+처음 쓰는 사람은 파일을 전부 먼저 읽으려고 하지 않는 편이 낫다.
+
+다음 순서로 읽으면 된다:
+
+1. 이 `README.md`
+2. `PROJECT-RULES.md`
+3. `AGENTS.md`, `CLAUDE.md`
+4. `DIALOGUE-PROTOCOL.md`
+5. 프로토콜이 필요하다고 가리킬 때만 `Document/DAD/`
+
+처음 성공 경로만 빠르게 밟고 싶다면 핵심 순서는 이렇다:
+
+1. `PROJECT-RULES.md`를 채운다
+2. 문서 validator를 돌린다
+3. 저장소 전용 스킬 namespace를 설정한다
+4. Codex 스킬 메타데이터를 검증한다
+5. Codex Desktop 스킬을 등록한다
+6. 첫 세션과 첫 턴을 만든다
+
 ## 포함 항목
 
 - Codex와 Claude Code용 루트 계약 문서
@@ -105,7 +126,15 @@ pwsh -File tools/Set-CodexSkillNamespace.ps1 -Namespace "your-project-prefix"
 
 `acg-`처럼 짧고 안정적인 저장소 전용 prefix를 쓰는 편이 좋다.
 
-### 6. Codex Desktop 스킬을 등록한다
+### 6. Codex 스킬 메타데이터를 검증한다
+
+```powershell
+pwsh -File tools/Validate-CodexSkillMetadata.ps1 -Root .
+```
+
+등록 전이나 샘플 훅 활성화 전에 이 검증을 먼저 돌린다. namespace 불일치, 런타임 스킬 파일의 BOM 문제, OpenAI 메타데이터 형식 문제를 초기에 잡는 용도다.
+
+### 7. Codex Desktop 스킬을 등록한다
 
 ```powershell
 pwsh -File tools/Register-CodexSkills.ps1
@@ -126,11 +155,11 @@ pwsh -File tools/Register-CodexSkills.ps1
 - `.agents/skills/*/SKILL.md`는 UTF-8 without BOM이어야 하고 byte 0에서 `---`가 시작해야 한다
 - `.agents/skills/*/agents/openai.yaml`은 UTF-8 without BOM, 단일 YAML 문서, ASCII-safe display metadata를 유지해야 한다
 
-### 7. 필요하면 프로젝트 전용 프롬프트를 추가한다
+### 8. 필요하면 프로젝트 전용 프롬프트를 추가한다
 
 기본 프롬프트 세트로 부족하면 `.prompts/` 아래에 프로젝트 전용 프롬프트를 추가한다. 대신 자주 읽히는 루트 문서는 얇게 유지하고, 상세 운영 규칙은 `Document/` 아래의 별도 문서로 빼는 편이 낫다.
 
-### 8. 첫 세션을 생성한다
+### 9. 첫 세션을 생성한다
 
 ```powershell
 pwsh -File tools/New-DadSession.ps1 `
@@ -142,7 +171,7 @@ pwsh -File tools/New-DadSession.ps1 `
 
 이 명령은 `Document/dialogue/` 아래에 세션 골격을 만든다. 세션 ID는 사람이 읽기 쉬우면서도 안정적인 이름으로 정한다.
 
-### 9. 첫 턴을 생성한다
+### 10. 첫 턴을 생성한다
 
 ```powershell
 pwsh -File tools/New-DadTurn.ps1 `
@@ -153,7 +182,7 @@ pwsh -File tools/New-DadTurn.ps1 `
 
 실제 에이전트 발화가 오갈 때마다 턴 파일을 하나씩 만든다. 가능하면 패킷 파일을 손으로 처음부터 쓰지 말고, 생성 스크립트가 만든 스켈레톤을 바탕으로 채운다.
 
-### 10. 실제 핸드오프 프롬프트를 그대로 남긴다
+### 11. 실제 핸드오프 프롬프트를 그대로 남긴다
 
 각 턴을 마무리할 때마다 다음을 지킨다:
 
@@ -197,6 +226,7 @@ pwsh -File tools/Validate-DadPacket.ps1 -Root . -AllSessions
 ```bash
 ./tools/Validate-Documents.sh -IncludeRootGuides -IncludeAgentDocs -Fix
 ./tools/Set-CodexSkillNamespace.sh -Namespace "your-project-prefix"
+./tools/Validate-CodexSkillMetadata.sh -Root .
 ./tools/Register-CodexSkills.sh
 ./tools/New-DadSession.sh -SessionId "YYYY-MM-DD-your-task" -TaskSummary "Describe the task"
 ```
@@ -226,6 +256,7 @@ git config core.hooksPath .githooks
 - 템플릿 저장소 자체를 live 세션 작업공간처럼 쓰지 않는다.
 - 복사 후에도 `PROJECT-RULES.md`를 플레이스홀더 상태로 두지 않는다.
 - 스킬 등록 전에 namespace 교체를 빼먹지 않는다.
+- 등록 전에 메타데이터 검증을 생략하지 않는다.
 - Codex Desktop가 `.agents/skills/`를 자동 발견할 것이라고 가정하지 않는다.
 - 템플릿에 가짜 dialogue 세션을 미리 심지 않는다.
 - 각 턴의 실제 handoff prompt 산출물을 저장하는 절차를 빼먹지 않는다.

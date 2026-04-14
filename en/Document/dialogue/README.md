@@ -2,6 +2,16 @@
 
 `Document/dialogue/` holds live DAD v2 session artifacts.
 
+If you are still in initial setup, you can mostly ignore this folder until right before the first real session.
+
+The template intentionally ships without live session data. This folder becomes important only after `tools/New-DadSession.ps1` creates the first session.
+
+## What To Notice First
+
+- `state.json` tracks only the currently active session
+- `sessions/{session-id}/` stores the durable artifacts for that session
+- each turn needs both `turn-{N}.yaml` and the matching `turn-{N}-handoff.md`
+
 ## Expected Structure
 
 - `state.json`
