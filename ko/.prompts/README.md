@@ -1,32 +1,32 @@
 ﻿# .prompts
 
-Prompt library for the reusable DAD v2 template.
+재사용 가능한 DAD v2 템플릿용 프롬프트 라이브러리.
 
-## Included Prompts
+## 포함된 프롬프트
 
-| File | Purpose |
-|------|---------|
-| `01-시스템-감사.md` | Generic repository/system audit prompt |
-| `02-세션-시작-컨트랙트-작성.md` | New session kickoff and contract drafting |
-| `03-턴-종료-핸드오프-정리.md` | Turn closeout, packet, and handoff cleanup |
-| `04-세션-복구-재개.md` | Session recovery and safe resume |
-| `05-의견차이-디베이트-정리.md` | Debate and disagreement handling |
-| `06-수렴-종료-PR-정리.md` | Convergence closeout, summary, branch, and PR checklist |
-| `07-기존-프로젝트-도입-마이그레이션.md` | Introduce DAD v2 into an existing repository safely |
-| `08-템플릿-검토-개선.md` | Review and harden the template itself before reuse |
-| `09-비상-세션-복구.md` | Force-close and manually recover a broken DAD session safely |
-| `10-시스템-문서-정합성-동기화.md` | System-doc / validator / command sync prompt |
+| 파일 | 용도 |
+|------|------|
+| `01-시스템-감사.md` | 일반 저장소 / 시스템 감사 프롬프트 |
+| `02-세션-시작-컨트랙트-작성.md` | 새 세션 시작 및 컨트랙트 초안 작성 |
+| `03-턴-종료-핸드오프-정리.md` | 턴 마감, 패킷, 핸드오프 정리 |
+| `04-세션-복구-재개.md` | 세션 복구 및 안전한 재개 |
+| `05-의견차이-디베이트-정리.md` | 의견 차이 및 디베이트 처리 |
+| `06-수렴-종료-PR-정리.md` | 수렴 종료, 요약, 브랜치, PR 체크리스트 |
+| `07-기존-프로젝트-도입-마이그레이션.md` | 기존 저장소에 DAD v2를 안전하게 도입 |
+| `08-템플릿-검토-개선.md` | 재사용 전 템플릿 자체 검토 및 강화 |
+| `09-비상-세션-복구.md` | 손상된 DAD 세션을 강제 종료하고 수동으로 안전하게 복구 |
+| `10-시스템-문서-정합성-동기화.md` | 시스템 문서 / validator / 명령 동기화 프롬프트 |
 
-## Usage
+## 사용법
 
-- Use `01-시스템-감사.md` when auditing a new repository or checking whether the DAD system is coherent after changes.
-- Use `02-세션-시작-컨트랙트-작성.md` when creating Turn 1 and drafting the initial contract.
-- Use `03-턴-종료-핸드오프-정리.md` before finalizing any turn packet and peer prompt.
-- Use `04-세션-복구-재개.md` when resuming a paused or interrupted session.
-- Use `05-의견차이-디베이트-정리.md` when peer verdicts diverge on the same checkpoint.
-- Use `06-수렴-종료-PR-정리.md` when both agents are near done and you need to close the session without skipping summaries, validation, branch hygiene, or PR steps.
-- Use `07-기존-프로젝트-도입-마이그레이션.md` before enabling DAD v2 in a repository that already has its own rules, commands, or automation.
-- Use `08-템플릿-검토-개선.md` when Claude Code should audit and improve the template repository itself.
-- Use `09-비상-세션-복구.md` when `state.json`, turn packets, or validators are broken enough that normal resume flow is unsafe.
-- Use `10-시스템-문서-정합성-동기화.md` whenever a task changes protocol docs, validators, session schema, slash commands, skills, or prompt templates.
-- Add project-specific prompts here as the target repository grows.
+- 새 저장소를 감사하거나 변경 후 DAD 시스템 정합성을 확인할 때 `01-시스템-감사.md`를 사용한다.
+- Turn 1을 생성하고 초기 컨트랙트를 작성할 때 `02-세션-시작-컨트랙트-작성.md`를 사용한다.
+- 턴 패킷과 피어 프롬프트를 최종화하기 전에 `03-턴-종료-핸드오프-정리.md`를 사용한다.
+- 중단되거나 일시 중지된 세션을 재개할 때 `04-세션-복구-재개.md`를 사용한다.
+- 동일 체크포인트에 대해 피어의 판정이 엇갈릴 때 `05-의견차이-디베이트-정리.md`를 사용한다.
+- 두 에이전트가 완료에 근접하여 요약 / 검증 / 브랜치 정리 / PR 단계를 빠뜨리지 않고 세션을 마감해야 할 때 `06-수렴-종료-PR-정리.md`를 사용한다.
+- 이미 자체 규칙, 명령, 자동화를 보유한 저장소에 DAD v2를 도입하기 전에 `07-기존-프로젝트-도입-마이그레이션.md`를 사용한다.
+- Claude Code가 템플릿 저장소 자체를 감사하고 개선해야 할 때 `08-템플릿-검토-개선.md`를 사용한다.
+- `state.json`, 턴 패킷, validator가 손상되어 일반 재개 플로우가 안전하지 않을 때 `09-비상-세션-복구.md`를 사용한다.
+- 프로토콜 문서, validator, 세션 스키마, 슬래시 명령, 스킬, 프롬프트 템플릿을 변경할 때마다 `10-시스템-문서-정합성-동기화.md`를 사용한다.
+- 대상 저장소가 성장함에 따라 프로젝트별 프롬프트를 여기에 추가한다.
