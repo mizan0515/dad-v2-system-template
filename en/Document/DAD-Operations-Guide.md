@@ -10,7 +10,7 @@ If you only want the shortest successful onboarding path, follow `README.md` fir
 
 - DAD v2 is a **user-bridged** workflow. Auto mode reduces questions and convergence friction; it does not remove the relay step.
 - Treat `Document/dialogue/state.json` as the current-session source of truth and `Document/dialogue/sessions/{session-id}/` as the durable artifact bundle.
-- Treat the rendered peer prompt as a durable artifact too: save it as `turn-{N}-handoff.md`, record that path in `handoff.prompt_artifact`, and paste the same text in the final handoff reply.
+- Treat the rendered peer prompt as a durable artifact too: when a turn actually hands off to the peer, save it as `turn-{N}-handoff.md`, record that path in `handoff.prompt_artifact`, and paste the same text in the final handoff reply.
 - Leave `handoff.ready_for_peer_verification` false while a turn is still in progress. Flip it to true only after `handoff.next_task`, `handoff.context`, and the saved handoff artifact are all finalized.
 - `DIALOGUE-PROTOCOL.md` is intentionally thin. Read detailed schema and validation references under `Document/DAD/` when needed.
 - Prefer multiple short, session-scoped slices over one long umbrella session when the task meaningfully changes.
@@ -108,6 +108,7 @@ pwsh -File tools/Validate-DadPacket.ps1 -Root . -AllSessions
 - Prefer a fresh session when the goal, verification surface, or task ownership meaningfully changes instead of stretching one session across unrelated work.
 - Closed or superseded sessions still need `summary.md` plus the named closed-session summary artifact.
 - Right before convergence, use `.prompts/06-convergence-pr-closeout.md` as the checklist to avoid skipping summary, state, validation, or branch cleanup.
+- If the session converges on the current turn and no peer handoff remains, the same turn owner still needs to finish commit/push/PR or record a concrete blocker. Dialogue closeout and git closeout are related, but they are not the same thing.
 - If normal resume cannot recover the session, use `.prompts/09-emergency-session-recovery.md`.
 - When the system itself has been used for a while and you need to audit live behavior, use `.prompts/11-dad-operations-audit.md`.
 - If this repository should stop owning the global Codex skill links, remove them with `pwsh -File tools/Unregister-CodexSkills.ps1` and restart Codex Desktop.

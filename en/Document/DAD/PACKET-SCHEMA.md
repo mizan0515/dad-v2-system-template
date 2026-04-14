@@ -59,5 +59,7 @@ handoff:
 - If `handoff.ready_for_peer_verification: true`, `handoff.prompt_artifact` is required and must point to the saved peer-prompt artifact for that turn.
 - If `handoff.ready_for_peer_verification: true`, `handoff.next_task` and `handoff.context` must both be non-empty.
 - If `suggest_done: true`, `done_reason` is required.
+- `suggest_done: true` may appear with `ready_for_peer_verification: false` on a final converged no-handoff turn.
+- If `suggest_done: true` and `ready_for_peer_verification: false`, leave `prompt_artifact` empty for that turn.
 - Closed sessions require summary artifacts.
 - Root-level aliases such as `self_work` or root-level `suggest_done` are invalid.

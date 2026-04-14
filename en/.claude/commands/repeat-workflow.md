@@ -38,7 +38,7 @@ Repeatedly execute a symmetric-turn collaboration session under the Dual-Agent D
       Important: do not evaluate leniently. Never say "looks good". Cite concrete evidence and examples.
       ```
    f. **User shares Codex result**: feedback → next turn
-   g. **Convergence decision**: all checkpoints PASS + both sides done → commit + push to task branch + open PR
+   g. **Convergence decision**: all checkpoints PASS + both sides done → complete session closeout. If another peer turn remains, emit the next handoff. If this is the final converged turn, finish summary/state updates plus task-branch commit + push + PR in the same turn, or report the exact blocker.
 5. On finish, record the session summary under `Document/dialogue/sessions/{session-id}/`.
 
 ## Safety Guards

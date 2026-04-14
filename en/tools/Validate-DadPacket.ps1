@@ -298,8 +298,15 @@ function Validate-PacketFile {
     }
 
     if ($handoffSuggest.Success -and $handoffSuggest.Groups["value"].Value -eq "true") {
-        if (-not (Test-Regex -Text $text -Pattern '^\s+ready_for_peer_verification:\s*true\s*$')) {
-            Add-Issue -List $issues -Message "handoff.suggest_done=true requires handoff.ready_for_peer_verification=true."
+        $readyIsTrue = $handoffReady.Success -and $handoffReady.Groups["value"].Value -eq "true"
+        $readyIsFalse = $handoffReady.Success -and $handoffReady.Groups["value"].Value -eq "false"
+
+        if ((-not $readyIsTrue) -and (-not $readyIsFalse)) {
+            Add-Issue -List $issues -Message "handoff.suggest_done=true requires handoff.ready_for_peer_verification to be set explicitly."
+        }
+
+        if ($readyIsFalse -and -not [string]::IsNullOrWhiteSpace($promptArtifact)) {
+            Add-Issue -List $issues -Message "handoff.suggest_done=true with handoff.ready_for_peer_verification=false must not keep a prompt_artifact for this turn."
         }
 
         if (-not (Test-Regex -Text $text -Pattern '^\s+done_reason:\s*\S+')) {

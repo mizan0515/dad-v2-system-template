@@ -38,7 +38,7 @@ Dual-Agent Dialogue v2 프로토콜에 따라 대칭 턴 기반 협업 세션을
       중요: 관대하게 평가하지 마라. "좋아 보인다" 금지. 구체적 근거와 예시를 들어라.
       ```
    f. **사용자가 Codex 결과 공유**: 피드백 → 다음 턴
-   g. **수렴 판단**: 모든 체크포인트 PASS + 양쪽 done → 작업 브랜치에 커밋 + push + PR 생성
+   g. **수렴 판단**: 모든 체크포인트 PASS + 양쪽 done → 세션 closeout을 완료한다. 다음 peer 턴이 남아 있으면 handoff를 출력하고, 이번 턴이 최종 converged 턴이면 같은 턴에서 summary/state 정리와 작업 브랜치 commit + push + PR까지 끝내거나 정확한 blocker를 보고한다.
 5. 종료 시 세션 요약을 `Document/dialogue/sessions/{session-id}/`에 기록한다.
 
 ## 안전 가드

@@ -18,10 +18,12 @@ Root `state.json` tracks the currently active session only. When a new session i
 ## Expected Session Contents
 
 - `turn-{N}.yaml`
-- `turn-{N}-handoff.md` for the exact peer prompt emitted at turn closeout
+- `turn-{N}-handoff.md` for each turn that actually emits a peer prompt at closeout
 - `state.json`
 - `summary.md` for the session-scoped summary
 - `YYYY-MM-DD-{session-id}-summary.md` for the named summary on closed sessions
+
+On a final converged turn, summary/state artifacts close the dialogue lifecycle, but they do not automatically close repository git work. If verified changes exist, the same final turn still needs the commit/push/PR closeout required by `PROJECT-RULES.md`, or a concrete blocker.
 
 ## State Schema
 

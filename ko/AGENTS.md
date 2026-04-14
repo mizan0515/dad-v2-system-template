@@ -39,6 +39,8 @@ Codex가 해서는 안 되는 일:
 Git 규칙:
 - 의미 있고 검증된 변경 뒤에는 commit과 push를 한다
 - 현재 브랜치가 `main` / `master`라면 먼저 작업 브랜치를 만든다
+- DAD 세션이 자신의 턴에서 수렴하고 검증된 변경이 있으면, `PROJECT-RULES.md`가 예외를 명시하지 않는 한 같은 closeout 안에서 작업 브랜치 commit + push + PR까지 마친다
+- PR 생성이 막히면 조용히 종료 완료로 처리하지 말고, blocker와 빠진 단계를 구체적으로 남긴다
 
 ## 대화 모드
 
@@ -50,15 +52,16 @@ Git 규칙:
 4. 상대 작업을 contract checkpoint 기준으로 검토한다
 5. 자신의 턴을 self-iteration과 함께 수행한다
 6. `turn-{N}.yaml`을 `Document/dialogue/sessions/{session-id}/`에 저장한다
-7. 정확한 Claude Code handoff prompt를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다
+7. 다음 Claude Code 턴이 남아 있으면 정확한 handoff prompt를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다
 8. state를 갱신한다
-9. 같은 Claude Code prompt를 required handoff format으로 최종 응답에 출력한다
+9. 다음 Claude Code 턴이 남아 있으면 같은 Claude Code prompt를 required handoff format으로 최종 응답에 출력한다
+10. 세션이 이번 턴에서 수렴하면 close summary/state 작업과 `PROJECT-RULES.md`가 요구하는 git closeout을 같은 턴에서 끝낸다. 다음 턴이 없다는 이유로 commit/push/PR을 미루지 않는다.
 
 system-doc drift를 발견하면 같은 턴 안에서 닫거나, 다음 작업의 첫 항목으로 남긴다.
 
 ## Claude Code Handoff Rules
 
-모든 Claude Code prompt는 다음을 포함해야 한다.
+다음 Claude Code 턴이 남아 있을 때, 모든 Claude Code prompt는 다음을 포함해야 한다.
 
 1. `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
 2. `Session: Document/dialogue/state.json`

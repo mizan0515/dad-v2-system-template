@@ -85,6 +85,7 @@ Codex와 Claude Code가 대칭 턴으로 협업하는 Dual-Agent Dialogue v2 워
 
 - 그 저장소에서 무엇이 source of truth인지
 - 어떤 빌드, 테스트, 배포 guardrail이 있는지
+- converged DAD 세션의 최종 git/PR closeout 정책이 무엇인지
 - 에이전트가 반드시 지켜야 하는 운영 제약이 무엇인지
 
 그 다음 `AGENTS.md`, `CLAUDE.md`, `DIALOGUE-PROTOCOL.md`를 검토해서 프로젝트 정책상 달라져야 하는 부분만 조정한다.
@@ -184,11 +185,13 @@ pwsh -File tools/New-DadTurn.ps1 `
 
 ### 11. 실제 핸드오프 프롬프트를 그대로 남긴다
 
-각 턴을 마무리할 때마다 다음을 지킨다:
+peer에게 작업을 넘기는 턴을 마무리할 때마다 다음을 지킨다:
 
 - 실제로 상대 에이전트에게 넘긴 handoff prompt를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장한다
 - 그 경로를 `handoff.prompt_artifact`에 기록한다
 - 같은 본문을 최종 응답에도 그대로 남긴다
+
+현재 턴이 최종 converged closeout이라 새 peer prompt가 없다면, handoff artifact를 억지로 만들지 말고 summary/state 산출물과 `PROJECT-RULES.md`가 요구하는 git closeout을 마무리한다.
 
 이렇게 해야 나중에 세션 기록을 감사할 수 있고, 다음 에이전트가 실제 전달 문맥을 재현할 수 있다.
 
@@ -259,7 +262,8 @@ git config core.hooksPath .githooks
 - 등록 전에 메타데이터 검증을 생략하지 않는다.
 - Codex Desktop가 `.agents/skills/`를 자동 발견할 것이라고 가정하지 않는다.
 - 템플릿에 가짜 dialogue 세션을 미리 심지 않는다.
-- 각 턴의 실제 handoff prompt 산출물을 저장하는 절차를 빼먹지 않는다.
+- 실제로 peer에게 작업을 넘기는 턴의 handoff prompt 산출물을 저장하는 절차를 빼먹지 않는다.
+- `converged` 상태만 기록하고 git closeout이 끝났다고 가정하지 않는다. 최종 턴 PR 정책을 `PROJECT-RULES.md`에 명시하고 `.prompts/06-수렴-종료-PR-정리.md`로 강제한다.
 
 ## 참고 사항
 

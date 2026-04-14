@@ -83,6 +83,7 @@ Replace the placeholder text with:
 
 - the real source-of-truth files
 - the real build, test, and deployment guardrails
+- the real git/PR closeout policy for converged DAD sessions
 - the real operational constraints the agents must respect
 
 Then review `AGENTS.md`, `CLAUDE.md`, and `DIALOGUE-PROTOCOL.md` and adjust only what needs to differ for the project.
@@ -182,11 +183,13 @@ Create one turn file per actual agent turn. Prefer generating the packet skeleto
 
 ### 11. Record The Exact Handoff Prompt
 
-On every turn closeout:
+On every turn closeout that hands work to the peer:
 
 - save the exact peer handoff prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`
 - record that path in `handoff.prompt_artifact`
 - paste the same text in the final reply
+
+If the current turn is the final converged closeout, a new peer prompt may be absent. In that case, finish the summary/state artifacts and the git closeout required by `PROJECT-RULES.md` instead of fabricating a handoff artifact.
 
 This keeps the session auditable and lets the next agent reconstruct the real handoff context.
 
@@ -257,7 +260,8 @@ The hook's registration dry-run intentionally fails while the reserved template 
 - Do not skip metadata validation before registration or hook enablement.
 - Do not assume Codex Desktop will discover `.agents/skills/` automatically.
 - Do not pre-seed fake dialogue sessions in the template.
-- Do not forget to save the exact handoff prompt artifact for each turn.
+- Do not forget to save the exact handoff prompt artifact for each turn that actually hands work to the peer.
+- Do not assume `converged` session state alone means git closeout is done; define the final-turn PR policy in `PROJECT-RULES.md` and enforce it with `.prompts/06-convergence-pr-closeout.md`.
 
 ## Notes
 

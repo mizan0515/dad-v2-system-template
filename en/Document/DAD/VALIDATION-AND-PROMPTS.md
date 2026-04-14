@@ -4,7 +4,7 @@ Use this file for validation timing, peer prompt rules, and prompt references.
 
 ## Peer Prompt Rules
 
-Every peer prompt must include:
+When another peer turn remains, every peer prompt must include:
 
 1. `Read PROJECT-RULES.md first. Then read {agent-contract}.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
 2. `Session: Document/dialogue/state.json`
@@ -33,9 +33,11 @@ Use:
 Run validation at minimum:
 
 1. after saving a turn packet
-2. after saving the handoff prompt artifact referenced by `handoff.prompt_artifact`
+2. after saving the handoff prompt artifact referenced by `handoff.prompt_artifact`, when that turn actually emits a peer handoff
 3. before recording `suggest_done: true`
 4. before resuming a recovered session
+
+On a final converged no-handoff turn, `handoff.prompt_artifact` may stay empty and `handoff.ready_for_peer_verification` may stay false. The validator still requires `handoff.done_reason` when `suggest_done: true`.
 
 ## Prompt References
 
@@ -54,6 +56,8 @@ Base references in this template:
 - `.prompts/11-dad-operations-audit.md`
 
 ## Large-File Reading Rule
+
+Use `.prompts/06-convergence-pr-closeout.md` on the final converged turn, especially when no peer prompt will follow. That prompt is the checklist for summary/state artifacts plus the required git closeout.
 
 - If a required reference file is too large to read in one call, read the section index first, then read only the needed sections in chunks.
 - Do not stop the task only because a monolithic read failed once.

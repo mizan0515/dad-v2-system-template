@@ -69,6 +69,7 @@ If this repository adopts DAD v2, record the local operating assumptions explici
 - whether short session-scoped slices are preferred over one long umbrella session
 - when a fresh session should supersede the current one
 - which validators are mandatory before `suggest_done: true`
+- whether a final converged turn must also finish commit/push/PR or explicitly record why not
 - how summaries, work-session notes, or research/inventory files must be updated
 - any repository-local bootstrap or environment checks that must happen before the first session
 
@@ -78,4 +79,6 @@ Specify the repository's git policy, for example:
 
 - Work on a task branch, not `main`
 - Commit and push after meaningful verified changes
+- Open or update the task-branch PR before claiming final closeout on a converged session, unless the repository explicitly uses a different merge policy
+- If PR creation is blocked, report the blocker and the exact missing step instead of silently stopping after validators
 - Report clearly when unrelated dirty files block staging

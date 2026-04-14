@@ -29,7 +29,7 @@ Codex와 Claude Code 간 대칭 턴 기반 Dialogue 세션을 시작한다.
    c. 자체 반복 루프: 체크포인트 기준 자체 검증, 만족할 때까지 반복
    d. Turn Packet을 `Document/dialogue/sessions/{session-id}/turn-01.yaml`로 저장
 5. `Document/dialogue/state.json` 초기화/업데이트.
-6. 정확한 Codex용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification: true`는 `handoff.next_task`, `handoff.context`가 확정된 뒤에만 설정한다.
+6. 정확한 Codex용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification: true`는 `handoff.next_task`, `handoff.context`, `handoff.prompt_artifact`가 모두 확정된 뒤에만 설정한다.
 7. 같은 Codex용 프롬프트를 사용자에게 출력한다 (CLI 래퍼 없이 프롬프트 본문만).
    프롬프트에는 반드시 아래 7개 요소를 포함한다:
    - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`

@@ -10,7 +10,7 @@
 
 - DAD v2는 **user-bridged** 워크플로우다. auto 모드는 질문과 수렴 마찰을 줄일 뿐, 사용자 relay 단계를 제거하지 않는다.
 - `Document/dialogue/state.json`은 현재 세션의 source of truth이고, `Document/dialogue/sessions/{session-id}/`는 durable artifact bundle이다.
-- peer prompt도 durable artifact로 취급한다. 턴 종료 시 `turn-{N}-handoff.md`로 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한 뒤 같은 본문을 최종 handoff 응답에 그대로 출력한다.
+- peer prompt도 durable artifact로 취급한다. 실제로 peer handoff를 내보내는 턴에서는 `turn-{N}-handoff.md`로 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한 뒤 같은 본문을 최종 handoff 응답에 그대로 출력한다.
 - 턴이 진행 중일 때는 `handoff.ready_for_peer_verification`를 false로 유지하고, `handoff.next_task`, `handoff.context`, 저장된 handoff artifact가 모두 확정된 뒤에만 true로 올린다.
 - `DIALOGUE-PROTOCOL.md`는 의도적으로 얇게 유지하고, 상세 스키마와 validation reference는 필요할 때 `Document/DAD/`에서 읽는다.
 - 작업 의미가 바뀌면 하나의 긴 umbrella session보다 짧은 session-scoped slice를 여러 개 닫는 방식을 우선한다.
@@ -108,6 +108,7 @@ pwsh -File tools/Validate-DadPacket.ps1 -Root . -AllSessions
 - 목표, 검증 표면, 작업 소유 범위가 바뀌면 하나의 세션을 억지로 늘리지 말고 새 세션을 연다.
 - 종료되거나 supersede된 세션도 `summary.md`와 named closed-session summary를 남긴다.
 - 수렴 직전에는 `.prompts/06-수렴-종료-PR-정리.md`를 기준으로 summary, state, validation, 브랜치 정리를 빠뜨리지 않는다.
+- 세션이 현재 턴에서 수렴하고 더 이상 peer handoff가 남지 않더라도, 같은 턴 담당자가 commit/push/PR을 끝내거나 구체적인 blocker를 남겨야 한다. dialogue closeout과 git closeout은 연결돼 있지만 동일한 단계는 아니다.
 - 일반 재개로 복구할 수 없으면 `.prompts/09-비상-세션-복구.md`를 사용한다.
 - 시스템이 실제로 운용된 뒤 live artifact 기준 운영 감사를 하려면 `.prompts/11-DAD-운영-감사.md`를 사용한다.
 - 이 저장소가 전역 Codex 스킬 링크를 더 이상 소유하지 않아야 하면 `pwsh -File tools/Unregister-CodexSkills.ps1`를 실행하고 Codex Desktop를 재시작한다.

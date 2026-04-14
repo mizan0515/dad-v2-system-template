@@ -10,14 +10,14 @@ The template intentionally ships without live session data. This folder becomes 
 
 - `state.json` tracks only the currently active session
 - `sessions/{session-id}/` stores the durable artifacts for that session
-- each turn needs both `turn-{N}.yaml` and the matching `turn-{N}-handoff.md`
+- each turn needs `turn-{N}.yaml`; turns that hand off to a peer also need the matching `turn-{N}-handoff.md`
 
 ## Expected Structure
 
 - `state.json`
 - `sessions/{session-id}/state.json`
 - `sessions/{session-id}/turn-{N}.yaml`
-- `sessions/{session-id}/turn-{N}-handoff.md`
+- `sessions/{session-id}/turn-{N}-handoff.md` when that turn emits a peer handoff
 - `sessions/{session-id}/summary.md`
 - `sessions/{session-id}/YYYY-MM-DD-{session-id}-summary.md` on closed sessions
 
@@ -26,7 +26,8 @@ The template intentionally ships without live session data. This folder becomes 
 - Do not pre-seed fake sessions in the template.
 - Create the first session with `tools/New-DadSession.ps1`.
 - Create each new turn file with `tools/New-DadTurn.ps1`.
-- Save the exact peer prompt for each turn to `sessions/{session-id}/turn-{N}-handoff.md` and record that path in `handoff.prompt_artifact`.
+- Save the exact peer prompt to `sessions/{session-id}/turn-{N}-handoff.md` and record that path in `handoff.prompt_artifact` for every turn that actually hands off to a peer.
+- A final converged turn may close the session without a new peer prompt. In that case, keep the close summary/state artifacts and finish the git closeout required by `PROJECT-RULES.md`.
 - Prefer short session-scoped slices. Start a fresh session when the goal or verification surface materially changes instead of stretching one session across unrelated work.
 - If a new session replaces the current one, close or supersede the previous session explicitly and keep its summary artifacts.
 - `tools/Validate-DadPacket.ps1 -Root . -AllSessions` prints a skip message while no live session exists, then becomes mandatory after the first session is created.

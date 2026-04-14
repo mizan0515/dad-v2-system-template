@@ -21,7 +21,7 @@ Use `/repeat-workflow N` when supervision is needed.
 
 1. **Minimal user confirmation** — automatic judgment except ESCALATE
 2. **Autonomous task selection** — picks the highest-value task from analysis
-3. **Automatic PASS convergence** — on full checkpoint pass, auto commit + push + PR on task branch
+3. **Automatic PASS convergence** — on full checkpoint pass, auto-finish the closeout. If this is the final converged turn, complete summary/state plus task-branch commit + push + PR in the same turn unless a concrete blocker prevents it.
 4. **Auto-pivot on stagnation** — if the same checkpoint FAILs twice consecutively, auto-switch approach
 
 ## Procedure
@@ -30,7 +30,7 @@ Use `/repeat-workflow N` when supervision is needed.
 2. Check existing session state in `Document/dialogue/state.json` (if absent, start a new session with `/dialogue-start`).
 3. Automatically analyze current project state (git log, tests, console)
 4. Autonomously execute `$ARGUMENTS` (or 5) turns:
-   - Auto-generate Contract → execute work → self-iterate → save peer prompt artifact → generate peer prompt (including mandatory tail) → user relay → next-turn convergence decision
+   - Auto-generate Contract → execute work → self-iterate → save peer prompt artifact → generate peer prompt when another turn remains (including mandatory tail) → user relay → next-turn or final-turn convergence decision
    - Save Turn Packet as `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
    - Save the exact peer prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`, record that path in `handoff.prompt_artifact`, and leave `handoff.ready_for_peer_verification` false until `handoff.next_task` and `handoff.context` are final.
    - The peer prompt must include these 7 elements:

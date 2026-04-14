@@ -59,5 +59,7 @@ handoff:
 - `handoff.ready_for_peer_verification: true`면 `handoff.prompt_artifact`가 필요하며, 해당 턴의 peer prompt artifact를 가리켜야 한다.
 - `handoff.ready_for_peer_verification: true`면 `handoff.next_task`, `handoff.context`도 둘 다 비어 있지 않아야 한다.
 - `suggest_done: true`면 `done_reason`이 필요하다.
+- 최종 converged no-handoff 턴에서는 `suggest_done: true`와 `ready_for_peer_verification: false` 조합을 사용할 수 있다.
+- `suggest_done: true`이면서 `ready_for_peer_verification: false`인 턴에서는 `prompt_artifact`를 비워 둔다.
 - 닫힌 세션에는 summary artifact가 필요하다.
 - `self_work`, 루트 레벨 `suggest_done` 같은 별칭/오염 필드는 허용하지 않는다.

@@ -20,7 +20,7 @@ argument-hint: "[턴 수, 기본 5]"
 
 1. **사용자 확인 최소화** — ESCALATE 외에는 자동 판단
 2. **작업 선택 자율화** — 분석 결과에 따라 가장 가치 있는 작업을 자동 선택
-3. **PASS 자동 수렴** — 모든 체크포인트 통과 시 작업 브랜치에 자동 커밋 + push + PR 생성
+3. **PASS 자동 수렴** — 모든 체크포인트 통과 시 closeout을 자동으로 마무리한다. 이번 턴이 최종 converged 턴이면 같은 턴에서 summary/state와 작업 브랜치 commit + push + PR까지 끝내고, 막히면 구체 blocker를 남긴다.
 4. **정체 시 자동 전환** — 2턴 연속 같은 체크포인트 FAIL 시 다른 접근으로 자동 전환
 
 ## 절차
@@ -29,7 +29,7 @@ argument-hint: "[턴 수, 기본 5]"
 2. `Document/dialogue/state.json`에서 기존 세션 상태를 확인한다 (없으면 `/dialogue-start`로 새 세션을 시작).
 3. 프로젝트 현재 상태를 자동 분석 (git log, 테스트, 콘솔)
 4. `$ARGUMENTS`턴 (또는 5턴) 자율 실행:
-   - Contract 자동 생성 → 작업 실행 → 자체 반복 → 상대용 프롬프트 artifact 저장 → 상대용 프롬프트 생성(필수 꼬리말 포함) → 사용자 relay → 다음 턴 수렴 판단
+   - Contract 자동 생성 → 작업 실행 → 자체 반복 → 상대용 프롬프트 artifact 저장 → 다음 턴이 남아 있을 때만 상대용 프롬프트 생성(필수 꼬리말 포함) → 사용자 relay → 다음 턴 또는 최종 턴 수렴 판단
    - Turn Packet은 `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`에 저장
    - 정확한 상대용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification`는 `handoff.next_task`, `handoff.context`가 확정되기 전까지 false로 둔다.
    - 상대용 프롬프트에는 반드시 아래 7개 요소 포함:

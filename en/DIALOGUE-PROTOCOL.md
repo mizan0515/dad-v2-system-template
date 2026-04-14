@@ -16,7 +16,7 @@ Keep this root file readable in one call. Detailed schema, lifecycle, and valida
 ## Turn Flow
 
 - Turn 1: analyze state, draft contract, execute first slice, self-iterate, write packet, output peer prompt.
-- Turn 2+: review the peer turn against checkpoints, execute your own slice, self-iterate, write packet, output peer prompt.
+- Turn 2+: review the peer turn against checkpoints, execute your own slice, self-iterate, then either write packet + output peer prompt for the next turn or, on the final converged turn, write the closeout packet and finish session closeout.
 
 ## Mandatory Rules
 
@@ -24,13 +24,16 @@ Keep this root file readable in one call. Detailed schema, lifecycle, and valida
 - `suggest_done` and `done_reason` live only under `handoff`.
 - If `suggest_done: true`, `done_reason` is required.
 - Closed sessions require summary artifacts.
+- A converged final turn with verified changes still owes repository closeout. If no peer handoff remains, finish commit/push/PR in that same turn unless `PROJECT-RULES.md` explicitly allows otherwise; if blocked, record the blocker concretely.
 - Root `Document/dialogue/state.json` tracks the currently active session only.
 - Prefer short, session-scoped slices over one long umbrella session when the goal or verification surface changes materially.
 - If a new session replaces the current one, mark the previous session `superseded` or otherwise closed explicitly before moving on.
 
 ## Peer Prompt Rules
 
-Every peer prompt must include:
+Apply these rules when another peer turn remains. A final converged turn may end without a new peer prompt, but it still must complete summary/state closeout and the git closeout required by `PROJECT-RULES.md`.
+
+When another peer turn remains, every peer prompt must include:
 
 1. `Read PROJECT-RULES.md first. Then read {agent-contract}.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
 2. `Session: Document/dialogue/state.json`
@@ -57,7 +60,7 @@ Important: do not evaluate leniently. Never say "looks good". Cite concrete evid
 Run validation at minimum:
 
 1. after saving a turn packet
-2. after saving the prompt artifact referenced by `handoff.prompt_artifact`
+2. after saving the prompt artifact referenced by `handoff.prompt_artifact`, when that turn actually emits a peer handoff
 3. before recording `suggest_done: true`
 4. before resuming a recovered session
 

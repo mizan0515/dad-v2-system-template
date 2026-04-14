@@ -18,10 +18,12 @@
 ## 세션별 예상 산출물
 
 - `turn-{N}.yaml`
-- 턴 종료 시 실제로 출력한 peer prompt를 저장한 `turn-{N}-handoff.md`
+- 실제로 peer prompt를 출력한 턴의 `turn-{N}-handoff.md`
 - `state.json`
 - 세션 범위 summary인 `summary.md`
 - 닫힌 세션용 named summary인 `YYYY-MM-DD-{session-id}-summary.md`
+
+최종 converged 턴에서는 summary/state 산출물이 dialogue lifecycle을 닫지만, 그것만으로 저장소 git 작업이 자동 종료되지는 않는다. 검증된 변경이 있으면 같은 최종 턴에서 `PROJECT-RULES.md`가 요구하는 commit/push/PR closeout까지 끝내거나, 구체적인 blocker를 남겨야 한다.
 
 ## 상태 스키마
 

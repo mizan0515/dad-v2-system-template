@@ -39,6 +39,8 @@ When the user is working with Codex directly:
 Git rules:
 - commit and push after meaningful verified changes
 - if on `main` / `master`, create a task branch first
+- when a DAD session converges on your turn and verified changes exist, complete task-branch commit + push + PR in the same closeout unless `PROJECT-RULES.md` explicitly says otherwise
+- if PR creation is blocked, record the blocker and the exact missing step instead of silently calling the closeout complete
 
 ## Dialogue Mode
 
@@ -50,15 +52,16 @@ When collaborating with Claude Code under `DIALOGUE-PROTOCOL.md`:
 4. Review the peer work against contract checkpoints
 5. Execute your own turn with self-iteration
 6. Save `turn-{N}.yaml` in `Document/dialogue/sessions/{session-id}/`
-7. Save the exact Claude Code handoff prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md` and record that path in `handoff.prompt_artifact`
+7. If another Claude Code turn remains, save the exact handoff prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md` and record that path in `handoff.prompt_artifact`
 8. Update state
-9. Output the same Claude Code prompt in the final reply using the required handoff format
+9. If another Claude Code turn remains, output the same Claude Code prompt in the final reply using the required handoff format
+10. If the session converges on this turn, finish the close summary/state work and the git closeout required by `PROJECT-RULES.md` in the same turn. No-next-turn is not a reason to defer commit/push/PR.
 
 If a system-doc drift is discovered, close it in the same turn or make it the first next task.
 
 ## Claude Code Handoff Rules
 
-Every Claude Code prompt must include:
+When another Claude Code turn remains, every Claude Code prompt must include:
 
 1. `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
 2. `Session: Document/dialogue/state.json`

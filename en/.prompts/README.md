@@ -22,10 +22,10 @@ Prompt library for the reusable DAD v2 template.
 
 - Use `01-system-audit.md` when auditing a new repository or checking whether the DAD system is coherent after changes.
 - Use `02-session-start-contract.md` when creating Turn 1 and drafting the initial contract.
-- Use `03-turn-closeout-handoff.md` before finalizing any turn packet and peer prompt.
+- Use `03-turn-closeout-handoff.md` before finalizing any turn packet and peer prompt, including a final no-handoff closeout turn.
 - Use `04-session-recovery-resume.md` when resuming a paused or interrupted session.
 - Use `05-debate-disagreement.md` when peer verdicts diverge on the same checkpoint.
-- Use `06-convergence-pr-closeout.md` when both agents are near done and you need to close the session without skipping summaries, validation, branch hygiene, or PR steps.
+- Use `06-convergence-pr-closeout.md` when both agents are near done and you need to close the session without skipping summaries, validation, branch hygiene, or PR steps, including the final no-handoff turn.
 - Use `07-existing-project-migration.md` before enabling DAD v2 in a repository that already has its own rules, commands, or automation.
 - Use `08-template-review-hardening.md` when Claude Code should audit and improve the template repository itself.
 - Use `09-emergency-session-recovery.md` when `state.json`, turn packets, or validators are broken enough that normal resume flow is unsafe.

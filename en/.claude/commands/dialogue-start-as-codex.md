@@ -41,7 +41,7 @@ DAD v2 session start where Codex (this chat) performs Turn 1 and produces a Clau
    - `protocol_version: "dad-v2"`
    - `relay_mode: "user-bridged"`
    - `last_agent: "codex"` (Turn 1 starter)
-6. Save the exact Claude Code-facing prompt to `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`, record that path in `handoff.prompt_artifact`, and set `handoff.ready_for_peer_verification: true` only after `handoff.next_task` and `handoff.context` are final.
+6. Save the exact Claude Code-facing prompt to `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`, record that path in `handoff.prompt_artifact`, and set `handoff.ready_for_peer_verification: true` only after `handoff.next_task`, `handoff.context`, and `handoff.prompt_artifact` are all final.
 7. Output the same Claude Code-facing prompt to the user (prompt body only, no CLI wrapper).
    The prompt must include these 7 elements:
    - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`

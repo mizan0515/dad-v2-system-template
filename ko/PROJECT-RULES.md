@@ -69,6 +69,7 @@
 - 하나의 긴 umbrella session보다 짧은 session-scoped slice를 선호하는지
 - 언제 현재 세션을 닫고 새 세션으로 supersede할지
 - `suggest_done: true` 전에 어떤 validator가 필수인지
+- 최종 converged 턴이 commit/push/PR까지 끝내야 하는지, 아니면 예외 시 어떤 방식으로 blocker를 남겨야 하는지
 - summary, work-session note, research/inventory 문서를 어떻게 같이 갱신할지
 - 첫 세션 전에 어떤 bootstrap / environment 점검이 필요한지
 
@@ -78,4 +79,6 @@
 
 - Work on a task branch, not `main`
 - Commit and push after meaningful verified changes
+- converged 세션의 최종 closeout을 선언하기 전에 task branch PR을 열거나 갱신한다. 저장소가 다른 merge policy를 명시한 경우만 예외다
+- PR 생성이 막히면 validator 뒤에서 조용히 멈추지 말고 blocker와 빠진 단계를 구체적으로 보고한다
 - Report clearly when unrelated dirty files block staging

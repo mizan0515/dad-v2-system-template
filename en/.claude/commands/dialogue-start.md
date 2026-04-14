@@ -29,7 +29,7 @@ Start a symmetric-turn Dialogue session between Codex and Claude Code.
    c. Self-iteration loop: self-verify against checkpoints, repeat until satisfied
    d. Save the Turn Packet as `Document/dialogue/sessions/{session-id}/turn-01.yaml`
 5. Initialize/update `Document/dialogue/state.json`.
-6. Save the exact Codex-facing prompt to `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`, record that path in `handoff.prompt_artifact`, and set `handoff.ready_for_peer_verification: true` only after `handoff.next_task` and `handoff.context` are final.
+6. Save the exact Codex-facing prompt to `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`, record that path in `handoff.prompt_artifact`, and set `handoff.ready_for_peer_verification: true` only after `handoff.next_task`, `handoff.context`, and `handoff.prompt_artifact` are all final.
 7. Output the same Codex-facing prompt to the user (prompt body only, no CLI wrapper).
    The prompt must include these 7 elements:
    - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`

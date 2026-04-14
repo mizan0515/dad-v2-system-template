@@ -1,53 +1,45 @@
 ---
 name: dadtpl-dialogue-start
-description: "Claude Code와의 DAD v2 대칭 턴 대화 세션을 시작하는 명시 호출 전용 스킬이다. `$dadtpl-dialogue-start`로 직접 호출할 때 사용한다. medium/large 작업에서 외부 비판적 리뷰가 가치 있을 때 사용한다. 단일 에이전트로 충분한 small 작업에서는 사용하지 않는다. 트리거: \"대화 세션 시작\", \"dialogue start\", \"Claude Code와 협업\"."
+description: "명시 호출 전용 DAD v2 세션 시작 스킬이다. `$dadtpl-dialogue-start`로 직접 호출할 때 사용한다. Codex가 Turn 1을 수행하고 Claude Code handoff prompt를 만든다."
 ---
 
-# Dialogue Start (Codex가 Turn 1)
+# Dialogue Start
 
-Codex(이 에이전트)가 Turn 1을 수행하고 Claude Code용 프롬프트를 생성하는 DAD v2 세션 시작.
+Codex가 Turn 1을 맡는 DAD v2 세션을 시작한다.
 
 ## 호출 방식
 
-- 이 스킬은 자동 제안이 아니라 **명시 호출 전용**이다.
-- 사용 예시: `$dadtpl-dialogue-start로 DAD v2 세션을 시작해라.`
+- 이 스킬은 명시 호출 전용이다.
+- 예시: `$dadtpl-dialogue-start로 DAD v2 세션을 시작하라.`
 
 ## 전제
 
-- 이 스킬을 실행하는 에이전트는 **Codex** 역할이다.
-- 계약 파일은 `AGENTS.md`이다 (Claude Code는 `CLAUDE.md`).
-- 상대(Claude Code)용 프롬프트를 생성할 때 `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`로 시작한다.
+- 실행 주체는 Codex다.
+- Codex 계약은 `AGENTS.md`, Claude Code 계약은 `CLAUDE.md`다.
 
 ## 절차
 
-1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `AGENTS.md`와 `DIALOGUE-PROTOCOL.md`를 읽어 v2 프로토콜을 숙지한다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
-2. 현재 프로젝트 상태를 분석한다:
-   - `git log --oneline -10` (최근 작업 흐름)
-   - `git status` (현재 변경 사항)
-   - 최근 실패 테스트, CI 기록, 또는 로컬 검증 로그가 있으면 확인
-   - 저장소 전용 research / inventory / architecture 문서가 있으면 확인
-3. 작업 scope를 판단한다 (small / medium / large).
-4. **Turn 1을 수행한다**:
-   a. large scope → `task_model` 작성 (목표/비목표/위험/성공형태)
-   b. Sprint Contract 초안 작성 (medium/large일 때):
-      - 구체적 체크포인트 목록 (검증 방법 포함)
-      - `reference_prompts` 연결
-   c. 계획 수립 + 실행
-   d. 자체 반복 루프: Contract 체크포인트를 모두 통과할 때까지 자체 검증, 만족할 때까지 반복
-   e. Turn Packet을 `Document/dialogue/sessions/{session-id}/turn-01.yaml`로 저장
-5. `Document/dialogue/state.json` 초기화/업데이트:
-   - `protocol_version: "dad-v2"`
-   - `relay_mode: "user-bridged"`
-   - `last_agent: "codex"` (Turn 1 시작자)
-6. Claude Code용 프롬프트를 사용자에게 출력 (CLI 래퍼 없이 본문만).
-   프롬프트에는 반드시 아래 6개 요소를 포함한다:
-   - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
-   - `Session: Document/dialogue/state.json`
-   - `Previous turn: Document/dialogue/sessions/{session-id}/turn-01.yaml`
-   - 구체적 작업 지시 (`handoff.next_task + handoff.context`)
-   - 10줄 안팎의 relay-friendly 요약
-   - 아래 필수 꼬리말 블록
-   프롬프트 끝에 반드시 아래 꼬리말을 포함한다:
+1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `AGENTS.md`와 `DIALOGUE-PROTOCOL.md`를 읽는다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
+2. 현재 프로젝트 상태를 분석한다. git 상태, 최근 작업 흐름, 검증 로그, 저장소 전용 reference 문서를 포함한다.
+3. 작업 scope를 판단한다.
+4. Turn 1을 수행한다.
+   - medium 또는 large scope면 sprint contract를 작성한다.
+   - 첫 slice를 계획하고 실행한다.
+   - 현재 checkpoint가 만족될 때까지 self-iteration을 수행한다.
+   - `Document/dialogue/sessions/{session-id}/turn-01.yaml`을 저장한다.
+5. `Document/dialogue/state.json`을 초기화하거나 갱신한다.
+6. 정확한 Claude Code용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification: true`는 `handoff.next_task`, `handoff.context`, `handoff.prompt_artifact`가 모두 최종 확정된 뒤에만 설정한다.
+7. 같은 프롬프트 본문을 사용자에게 출력한다.
+   - 프롬프트에는 반드시 아래 7개 요소를 포함한다.
+     - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
+     - `Session: Document/dialogue/state.json`
+     - `Previous turn: Document/dialogue/sessions/{session-id}/turn-01.yaml`
+     - `handoff.next_task + handoff.context` 기반의 구체적 작업 지시
+     - relay-friendly summary
+     - 아래 필수 꼬리말 블록
+     - `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장한 동일한 본문
+
+프롬프트 끝에는 아래 꼬리말을 붙인다.
 
 ```
 ---
@@ -58,11 +50,5 @@ Codex(이 에이전트)가 Turn 1을 수행하고 Claude Code용 프롬프트를
 
 ## 브랜치 규칙
 
-- main 직접 push 금지. 세션 시작 시 main 위에 있으면 새 작업 브랜치를 만든다.
-- 수렴 커밋도 작업 브랜치에서 수행 → push → PR → main 머지.
-
-## 세션 모드
-
-- **자율**: ESCALATE만 사용자에게. 나머지 자동.
-- **감독**: 모든 수렴에 사용자 확인 필요.
-- **하이브리드** (기본): large scope 또는 confidence low일 때만 확인.
+- `main`이나 `master`에 직접 push하지 않는다.
+- 이후 세션이 검증된 변경과 함께 수렴하면, 최종 converged 턴은 `PROJECT-RULES.md`가 예외를 명시하지 않는 한 task branch commit + push + PR까지 마쳐야 한다.

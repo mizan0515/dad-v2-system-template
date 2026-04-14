@@ -28,6 +28,7 @@ Claude Code를 단독으로 쓸 때는 다음을 따른다.
 - 여러 시스템을 건드릴 때는 계획을 먼저 드러낸다
 - 변경 후에는 가장 좁고 유용한 검증부터 실행한다
 - 변경이 self-contained하고 검증됐다면 commit과 push를 한다
+- 작업이 수렴 DAD closeout으로 끝나고 검증된 변경이 있으면, `PROJECT-RULES.md`가 다른 정책을 명시하지 않는 한 같은 closeout 안에서 작업 브랜치 PR까지 연다
 - 관련 없는 dirty file 때문에 staging이 막히면 그 사실을 명확히 보고한다
 
 ## 대화 모드
@@ -39,13 +40,14 @@ Claude Code를 단독으로 쓸 때는 다음을 따른다.
 3. Turn 2+이면 상대 turn을 checkpoint 기준으로 검토한 뒤 자신의 slice를 수행한다
 4. handoff 전에 self-iteration을 수행한다
 5. turn packet을 `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`에 저장한다
-6. 정확한 Codex prompt를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다
-7. 같은 Codex prompt를 required handoff format으로 출력한다
-8. system-doc drift가 남아 있으면 같은 턴 안에서 닫거나 다음 작업의 첫 항목으로 남긴다
+6. 다음 Codex 턴이 남아 있으면 정확한 prompt를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다
+7. 다음 Codex 턴이 남아 있으면 같은 Codex prompt를 required handoff format으로 출력한다
+8. 세션이 이번 턴에서 수렴하면 close summary/state 작업과 `PROJECT-RULES.md`가 요구하는 git closeout을 같은 턴에서 끝낸다. 다음 턴이 없다는 이유로 validator 뒤에 멈추지 않는다
+9. system-doc drift가 남아 있으면 같은 턴 안에서 닫거나 다음 작업의 첫 항목으로 남긴다
 
 ## Codex Handoff Rules
 
-모든 Codex prompt는 다음을 포함해야 한다.
+다음 Codex 턴이 남아 있을 때, 모든 Codex prompt는 다음을 포함해야 한다.
 
 1. `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD/ references, read the needed files there too.`
 2. `Session: Document/dialogue/state.json`

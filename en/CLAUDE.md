@@ -28,6 +28,7 @@ When used directly:
 - state the plan when touching multiple systems
 - run the narrowest useful verification after changes
 - commit and push when the change is self-contained and verified
+- if the work ends in a converged DAD closeout and verified changes exist, open the task-branch PR in the same closeout unless `PROJECT-RULES.md` explicitly allows a different policy
 - report clearly when unrelated dirty files block staging
 
 ## Dialogue Mode
@@ -39,13 +40,14 @@ When collaborating with Codex under `DIALOGUE-PROTOCOL.md`:
 3. if Turn 2+, review the peer turn against the checkpoints, then execute your own slice
 4. self-iterate before handoff
 5. save the turn packet in `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
-6. save the exact Codex prompt in `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md` and record that path in `handoff.prompt_artifact`
-7. output the same Codex prompt using the required handoff format
-8. if system-doc drift remains, close it in the same turn or make it the first next task
+6. if another Codex turn remains, save the exact prompt in `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md` and record that path in `handoff.prompt_artifact`
+7. if another Codex turn remains, output the same Codex prompt using the required handoff format
+8. if the session converges on this turn, finish the close summary/state work plus the git closeout required by `PROJECT-RULES.md` in the same turn; no-next-turn is not a reason to stop after validators
+9. if system-doc drift remains, close it in the same turn or make it the first next task
 
 ## Codex Handoff Rules
 
-Every Codex prompt must include:
+When another Codex turn remains, every Codex prompt must include:
 
 1. `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD/ references, read the needed files there too.`
 2. `Session: Document/dialogue/state.json`
