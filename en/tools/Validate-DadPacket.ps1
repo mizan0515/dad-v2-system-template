@@ -16,6 +16,15 @@ function Add-Issue {
     $List.Add($Message) | Out-Null
 }
 
+function Add-Warning {
+    param(
+        [System.Collections.Generic.List[string]]$List,
+        [string]$Message
+    )
+
+    $List.Add($Message) | Out-Null
+}
+
 function Test-Regex {
     param(
         [string]$Text,
@@ -32,6 +41,25 @@ function Get-RegexMatch {
     )
 
     return [regex]::Match($Text, $Pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)
+}
+
+function Test-AnyRegex {
+    param(
+        [string]$Text,
+        [string[]]$Patterns
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Text) -or -not $Patterns) {
+        return $false
+    }
+
+    foreach ($pattern in $Patterns) {
+        if ([regex]::IsMatch($Text, $pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
 }
 
 function Normalize-YamlScalar {
@@ -194,6 +222,7 @@ function Validate-PacketFile {
     )
 
     $issues = New-Object System.Collections.Generic.List[string]
+    $warnings = New-Object System.Collections.Generic.List[string]
     $text = Get-Content -Path $Path -Raw -Encoding UTF8
     $descriptions = Get-CheckpointDescriptions -Text $text
     $meta = Parse-PacketMetadata -Path $Path -Text $text
@@ -242,14 +271,115 @@ function Validate-PacketFile {
 
     $handoffSuggest = Get-RegexMatch -Text $text -Pattern '^\s+suggest_done:\s*(?<value>true|false)\s*$'
     $handoffReady = Get-RegexMatch -Text $text -Pattern '^\s+ready_for_peer_verification:\s*(?<value>true|false)\s*$'
+    $closeoutKindMatch = Get-RegexMatch -Text $text -Pattern '^\s+closeout_kind:\s*(?<value>[^\r\n]*)\s*$'
     $nextTaskMatch = Get-RegexMatch -Text $text -Pattern '^\s+next_task:\s*(?<value>[^\r\n]*)\s*$'
     $contextMatch = Get-RegexMatch -Text $text -Pattern '^\s+context:\s*(?<value>[^\r\n]*)\s*$'
     $nextTask = if ($nextTaskMatch.Success) { Normalize-YamlScalar -Value $nextTaskMatch.Groups["value"].Value } else { $null }
     $context = if ($contextMatch.Success) { Normalize-YamlScalar -Value $contextMatch.Groups["value"].Value } else { $null }
+    $handoffText = (($nextTask, $context) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join "`n"
     $promptArtifactMatch = Get-RegexMatch -Text $text -Pattern '^\s+prompt_artifact:\s*(?<value>[^\r\n]*)\s*$'
     $promptArtifact = if ($promptArtifactMatch.Success) { Normalize-YamlScalar -Value $promptArtifactMatch.Groups["value"].Value } else { $null }
+    $closeoutKind = if ($closeoutKindMatch.Success) { Normalize-YamlScalar -Value $closeoutKindMatch.Groups["value"].Value } else { $null }
+    $confidenceMatch = Get-RegexMatch -Text $text -Pattern '^\s+confidence:\s*(?<value>[^\r\n]+)\s*$'
+    $confidence = if ($confidenceMatch.Success) { Normalize-YamlScalar -Value $confidenceMatch.Groups["value"].Value } else { $null }
+    $openRisksBlock = Get-YamlChildBlock -Text $text -Key 'open_risks'
+    $openRisksHasItem = $openRisksBlock.Found -and [regex]::IsMatch($openRisksBlock.Block, '^\s*-\s+\S', [System.Text.RegularExpressions.RegexOptions]::Multiline)
+    $readyIsTrue = $handoffReady.Success -and $handoffReady.Groups["value"].Value -eq "true"
+    $readyIsFalse = $handoffReady.Success -and $handoffReady.Groups["value"].Value -eq "false"
+    $suggestIsTrue = $handoffSuggest.Success -and $handoffSuggest.Groups["value"].Value -eq "true"
 
-    if ($handoffReady.Success -and $handoffReady.Groups["value"].Value -eq "true") {
+    $allowedCloseoutKinds = @("peer_handoff", "final_no_handoff", "recovery_resume")
+    $effectiveCloseoutKind = $closeoutKind
+    if (-not [string]::IsNullOrWhiteSpace($closeoutKind) -and $allowedCloseoutKinds -notcontains $closeoutKind) {
+        Add-Issue -List $issues -Message "handoff.closeout_kind must be one of: peer_handoff, final_no_handoff, recovery_resume."
+    }
+    elseif ([string]::IsNullOrWhiteSpace($closeoutKind)) {
+        if ($readyIsTrue) {
+            $effectiveCloseoutKind = "peer_handoff"
+        }
+        elseif ($suggestIsTrue -and $readyIsFalse) {
+            $effectiveCloseoutKind = "final_no_handoff"
+        }
+        elseif ($readyIsFalse -and [string]::IsNullOrWhiteSpace($promptArtifact)) {
+            Add-Issue -List $issues -Message "Saved turn packets that do not emit a peer handoff must set handoff.closeout_kind explicitly. Use final_no_handoff for session closeout or recovery_resume for interruption/context overflow."
+        }
+    }
+
+    if ($effectiveCloseoutKind -eq "peer_handoff") {
+        if (-not $readyIsTrue) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=peer_handoff requires handoff.ready_for_peer_verification=true."
+        }
+        if ($suggestIsTrue) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=peer_handoff must not also set handoff.suggest_done=true."
+        }
+
+        $metaOnlyPatterns = @(
+            '\bwording\b',
+            '\bsummary\s*/\s*state\s*sync\b',
+            '\bstate\s*/\s*summary\s*sync\b',
+            '\bclosure\s+seal\b',
+            '\bseal\s+only\b',
+            '\bsync\s+only\b',
+            '\bvalidator(?:[-\s]+noise)?\b',
+            '\bsummary\s+refresh\b'
+        )
+        $exceptionPatterns = @(
+            '\bremote-visible\b',
+            '\bconfig\b',
+            '\bruntime\b',
+            '\bmeasurement\b',
+            '\bremeasure\b',
+            '\bsmoke\b',
+            '\bdestructive\b',
+            '\bhard-to-reverse\b',
+            '\bprovenance\b',
+            '\bcompliance\b',
+            '\bartifact\b',
+            '\bbug\b',
+            '\bfix\b',
+            '\btest\b',
+            '\bscript\b',
+            '\bbuild\b',
+            '\bparser\b',
+            '\bui\b',
+            '\bdownload\b',
+            '\baggregation\b',
+            '\bpromotion\b'
+        )
+        if ((Test-AnyRegex -Text $handoffText -Patterns $metaOnlyPatterns) -and -not (Test-AnyRegex -Text $handoffText -Patterns $exceptionPatterns)) {
+            Add-Warning -List $warnings -Message "handoff.closeout_kind=peer_handoff looks meta-only. Prefer finishing wording/state-summary sync/closure work inside the current execution turn unless this is a recovery or risk-gated verify relay."
+        }
+    }
+    elseif ($effectiveCloseoutKind -eq "final_no_handoff") {
+        if (-not $readyIsFalse) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=final_no_handoff requires handoff.ready_for_peer_verification=false."
+        }
+        if (-not [string]::IsNullOrWhiteSpace($promptArtifact)) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=final_no_handoff must keep handoff.prompt_artifact empty."
+        }
+        if (-not [string]::IsNullOrWhiteSpace($nextTask)) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=final_no_handoff must keep handoff.next_task empty. A closing session has no continuation; if follow-up work remains, admit it to the backlog before sealing the session."
+        }
+    }
+    elseif ($effectiveCloseoutKind -eq "recovery_resume") {
+        if (-not $readyIsFalse) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=recovery_resume requires handoff.ready_for_peer_verification=false."
+        }
+        if ($suggestIsTrue) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=recovery_resume must not set handoff.suggest_done=true."
+        }
+        if (-not [string]::IsNullOrWhiteSpace($promptArtifact)) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=recovery_resume must keep handoff.prompt_artifact empty."
+        }
+        if ($confidence -ne "low") {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=recovery_resume requires my_work.confidence=low."
+        }
+        if (-not $openRisksHasItem) {
+            Add-Issue -List $issues -Message "handoff.closeout_kind=recovery_resume requires at least one my_work.open_risks entry explaining the resume blocker."
+        }
+    }
+
+    if ($readyIsTrue) {
         if ([string]::IsNullOrWhiteSpace($nextTask)) {
             Add-Issue -List $issues -Message "handoff.ready_for_peer_verification=true requires handoff.next_task."
         }
@@ -297,10 +427,7 @@ function Validate-PacketFile {
         }
     }
 
-    if ($handoffSuggest.Success -and $handoffSuggest.Groups["value"].Value -eq "true") {
-        $readyIsTrue = $handoffReady.Success -and $handoffReady.Groups["value"].Value -eq "true"
-        $readyIsFalse = $handoffReady.Success -and $handoffReady.Groups["value"].Value -eq "false"
-
+    if ($suggestIsTrue) {
         if ((-not $readyIsTrue) -and (-not $readyIsFalse)) {
             Add-Issue -List $issues -Message "handoff.suggest_done=true requires handoff.ready_for_peer_verification to be set explicitly."
         }
@@ -349,6 +476,7 @@ function Validate-PacketFile {
     return [PSCustomObject]@{
         Meta = $meta
         Issues = $issues
+        Warnings = $warnings
     }
 }
 
@@ -532,6 +660,7 @@ if ($SessionId) {
     }
 }
 $allIssues = New-Object System.Collections.Generic.List[string]
+$allWarnings = New-Object System.Collections.Generic.List[string]
 $packetResults = New-Object System.Collections.Generic.List[object]
 
 if (-not $packetFiles -or $packetFiles.Count -eq 0) {
@@ -549,6 +678,10 @@ foreach ($packet in $packetFiles) {
 
     foreach ($issue in $result.Issues) {
         Add-Issue -List $allIssues -Message "$($result.Meta.Path): $issue"
+    }
+
+    foreach ($warning in $result.Warnings) {
+        Add-Warning -List $allWarnings -Message "$($result.Meta.Path): $warning"
     }
 }
 
@@ -629,6 +762,13 @@ if ($allIssues.Count -gt 0) {
         Write-Output "- $issue"
     }
     exit 1
+}
+
+if ($allWarnings.Count -gt 0) {
+    Write-Output "DAD packet/state validation warnings:"
+    foreach ($warning in $allWarnings) {
+        Write-Output "- $warning"
+    }
 }
 
 if ($AllSessions) {
