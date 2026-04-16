@@ -10,7 +10,10 @@
 
 - packet 필드나 필수 산출물이 헷갈릴 때
 - 세션 lifecycle이나 종료 상태 규칙이 헷갈릴 때
+- backlog admission이나 session 승격 규칙이 헷갈릴 때
+- 세션 closeout 때 linked backlog item을 어떻게 정리해야 하는지 헷갈릴 때
 - validator 기대사항이나 prompt artifact 규칙을 정확히 확인해야 할 때
+- 보류된 기능이나 validator-first 결정의 배경과 재검토 조건을 확인해야 할 때
 
 ## 왜 분리하는가
 
@@ -28,4 +31,6 @@
 
 - `PACKET-SCHEMA.md`
 - `STATE-AND-LIFECYCLE.md`
+- `BACKLOG-AND-ADMISSION.md`
 - `VALIDATION-AND-PROMPTS.md`
+- `VALIDATOR-FIRST-DISCOVERY-DEFERRED.md`

@@ -14,6 +14,8 @@ When another peer turn remains, every peer prompt must include:
 6. the mandatory tail block
 7. the exact prompt text saved to `handoff.prompt_artifact`, typically `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`
 
+The same closeout reply must paste that exact prompt text. In `user-bridged` mode, "saved the artifact" is not enough; the user should not need a second message just to ask for the relay prompt.
+
 Mandatory tail:
 
 ```
@@ -28,7 +30,9 @@ Important: do not evaluate leniently. Never say "looks good". Cite concrete evid
 Use:
 
 - `tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgentDocs -Fix`
+- `tools/Validate-CodexSkillMetadata.ps1 -Root .`
 - `tools/Validate-DadPacket.ps1 -Root . -AllSessions`
+- `tools/Validate-DadBacklog.ps1 -Root .`
 
 Run validation at minimum:
 
@@ -36,8 +40,26 @@ Run validation at minimum:
 2. after saving the handoff prompt artifact referenced by `handoff.prompt_artifact`, when that turn actually emits a peer handoff
 3. before recording `suggest_done: true`
 4. before resuming a recovered session
+5. after backlog linkage changes or when a linked session is closing
+6. after editing `.agents/skills/*/SKILL.md` or `agents/openai.yaml`
 
 On a final converged no-handoff turn, `handoff.prompt_artifact` may stay empty and `handoff.ready_for_peer_verification` may stay false. The validator still requires `handoff.done_reason` when `suggest_done: true`.
+
+On a non-final turn, leaving both `handoff.prompt_artifact` and `handoff.ready_for_peer_verification` empty is valid only for an explicit `handoff.closeout_kind: recovery_resume` packet.
+
+Validation passing is not a license to open a meta-only follow-up turn. Wording correction, summary/state sync, closure seal, and validator-noise cleanup should stay inside the active execution turn unless the DAD system itself needs repair.
+
+When another peer turn remains, `handoff.next_task` should still describe outcome work. A dedicated verify-only relay is justified only for remote-visible, config/runtime-sensitive, measurement-sensitive, destructive, or provenance/compliance-sensitive work.
+
+`Validate-DadPacket.ps1` may emit warnings for `peer_handoff` packets that read like meta-only cleanup without a matching risk-gated reason. Treat those warnings as a review signal to collapse the relay back into the current execution turn or state the real risk more concretely.
+
+`Validate-DadPacket.ps1` also enforces that `final_no_handoff` packets keep `handoff.next_task` empty. A closing session has no continuation; remaining follow-up work must be admitted to the backlog in the same closeout path. See `PACKET-SCHEMA.md` for the exact rule and `VALIDATOR-FIRST-DISCOVERY-DEFERRED.md` for the underlying design rationale.
+
+If an upgraded downstream repository still has older `final_no_handoff` packets with `handoff.next_task` populated, migrate them by either clearing stale text or admitting the real follow-up work to the backlog before clearing `handoff.next_task`.
+
+`Validate-DadBacklog.ps1` checks the admission layer, not the execution log. It should enforce one active `promoted` item per active session and keep `now` empty while an active session exists.
+
+`Validate-CodexSkillMetadata.ps1` should also keep runtime `SKILL.md` and `agents/openai.yaml` ASCII-safe because those files must remain UTF-8 without BOM.
 
 ## Prompt References
 

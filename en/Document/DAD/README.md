@@ -10,7 +10,10 @@ Read this folder only when the root `DIALOGUE-PROTOCOL.md` no longer gives enoug
 
 - packet fields or required artifacts are unclear
 - session lifecycle or closeout status is unclear
+- backlog admission or session-promotion rules are unclear
+- linked backlog item resolution on session closeout is unclear
 - validator expectations or prompt artifact rules need an exact reference
+- a deferred feature or validator-first design decision needs the recorded rationale and reopen conditions
 
 ## Why These Files Are Split
 
@@ -28,4 +31,6 @@ Read this folder only when the root `DIALOGUE-PROTOCOL.md` no longer gives enoug
 
 - `PACKET-SCHEMA.md`
 - `STATE-AND-LIFECYCLE.md`
+- `BACKLOG-AND-ADMISSION.md`
 - `VALIDATION-AND-PROMPTS.md`
+- `VALIDATOR-FIRST-DISCOVERY-DEFERRED.md`
