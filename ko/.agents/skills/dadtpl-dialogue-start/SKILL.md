@@ -1,54 +1,65 @@
 ---
 name: dadtpl-dialogue-start
-description: "명시 호출 전용 DAD v2 세션 시작 스킬이다. `$dadtpl-dialogue-start`로 직접 호출할 때 사용한다. Codex가 Turn 1을 수행하고 Claude Code handoff prompt를 만든다."
+description: "Explicit-invocation skill to start a DAD v2 session with Claude Code. Use when directly invoked via `$dadtpl-dialogue-start`. Use it for medium or large tasks where an external critical review is valuable."
 ---
 
 # Dialogue Start
 
-Codex가 Turn 1을 맡는 DAD v2 세션을 시작한다.
+Start a DAD v2 session where Codex takes Turn 1.
 
-## 호출 방식
+## Invocation
 
-- 이 스킬은 명시 호출 전용이다.
-- 예시: `$dadtpl-dialogue-start로 DAD v2 세션을 시작하라.`
+- This skill is explicit-invocation only.
+- Example: `Start a DAD v2 session via $dadtpl-dialogue-start.`
 
-## 전제
+## Preconditions
 
-- 실행 주체는 Codex다.
-- Codex 계약은 `AGENTS.md`, Claude Code 계약은 `CLAUDE.md`다.
+- The acting agent is Codex.
+- The Codex contract is `AGENTS.md`; Claude Code's contract is `CLAUDE.md`.
 
-## 절차
+## Procedure
 
-1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `AGENTS.md`와 `DIALOGUE-PROTOCOL.md`를 읽는다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
-2. 현재 프로젝트 상태를 분석한다. git 상태, 최근 작업 흐름, 검증 로그, 저장소 전용 reference 문서를 포함한다.
-3. 작업 scope를 판단한다.
-4. Turn 1을 수행한다.
-   - medium 또는 large scope면 sprint contract를 작성한다.
-   - 첫 slice를 계획하고 실행한다.
-   - 현재 checkpoint가 만족될 때까지 self-iteration을 수행한다.
-   - `Document/dialogue/sessions/{session-id}/turn-01.yaml`을 저장한다.
-5. `Document/dialogue/state.json`을 초기화하거나 갱신한다.
-6. 정확한 Claude Code용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification: true`는 `handoff.next_task`, `handoff.context`, `handoff.prompt_artifact`가 모두 최종 확정된 뒤에만 설정한다.
-7. 같은 프롬프트 본문을 사용자에게 출력한다.
-   - 프롬프트에는 반드시 아래 7개 요소를 포함한다.
+1. Read `PROJECT-RULES.md` first, then read `AGENTS.md` and `DIALOGUE-PROTOCOL.md`. If `DIALOGUE-PROTOCOL.md` points to `Document/DAD/` references, read the needed files there too.
+2. Analyze the current project state, including git status, recent work, verification logs, and repository-specific reference docs when present.
+3. Decide whether the proposed session is outcome-scoped. If the work is only wording correction, state/summary sync, closure seal, or validator-noise cleanup, fold it into the active execution session unless you are explicitly repairing broken DAD state or packet/schema drift.
+4. Judge task scope.
+5. If `Document/dialogue/state.json` already points to an active session, do not silently open a second one. Continue the active session or supersede/repair the linkage explicitly first.
+6. Create the session through `tools/New-DadSession.ps1` and make sure it links exactly one backlog item in `Document/dialogue/backlog.json`. Auto-bootstrap is only for fresh work when no reusable `now` or equivalent queued candidate already exists.
+7. Execute Turn 1:
+   - Draft the sprint contract for medium or large scope.
+   - Include at least one checkpoint naming the concrete artifact, verified decision, or risk disposition that justifies opening the session.
+   - Plan and execute the first slice.
+   - Self-iterate until the current checkpoints are satisfied.
+   - Save `Document/dialogue/sessions/{session-id}/turn-01.yaml`.
+8. Initialize or update `Document/dialogue/state.json`.
+9. If another peer turn remains, use a handoff only for outcome work. Keep `handoff.next_task` for current-session continuation; if newly discovered work needs a different future session, record it in `Document/dialogue/backlog.json` instead. Do not generate a verify-only / wording-only / sync-only / seal-only follow-up unless the remaining work is risk-gated or the DAD system itself needs repair.
+10. Set `handoff.closeout_kind: peer_handoff`, save the exact Claude Code-facing prompt to `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`, record that path in `handoff.prompt_artifact`, and set `handoff.ready_for_peer_verification: true` only after `handoff.next_task`, `handoff.context`, and `handoff.prompt_artifact` are all final.
+11. Output the same prompt body to the user in the same final reply that closes Turn 1. Do not stop at a status summary and wait for the user to ask for the next prompt.
+   - The prompt must include these 7 elements:
      - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
      - `Session: Document/dialogue/state.json`
      - `Previous turn: Document/dialogue/sessions/{session-id}/turn-01.yaml`
-     - `handoff.next_task + handoff.context` 기반의 구체적 작업 지시
-     - relay-friendly summary
-     - 아래 필수 꼬리말 블록
-     - `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장한 동일한 본문
+     - Concrete task instruction from `handoff.next_task + handoff.context`
+     - A relay-friendly summary
+     - The mandatory tail block below
+     - The exact same body saved in `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`
 
-프롬프트 끝에는 아래 꼬리말을 붙인다.
+Append this tail block at the end of the prompt:
 
-```
+```text
 ---
-허점이나 개선점이 있으면 직접 수정하고 diff를 보고하라.
-수정할 것이 없으면 "변경 불필요, PASS"라고 명시하라.
-중요: 관대하게 평가하지 마라. "좋아 보인다" 금지. 구체적 근거와 예시를 들어라.
+If you find any gap or improvement, fix it directly and report the diff.
+If nothing needs to change, state explicitly: "No change needed, PASS".
+Important: do not evaluate leniently. Never say "looks good". Cite concrete evidence and examples.
 ```
 
-## 브랜치 규칙
+## Branch Rules
 
-- `main`이나 `master`에 직접 push하지 않는다.
-- 이후 세션이 검증된 변경과 함께 수렴하면, 최종 converged 턴은 `PROJECT-RULES.md`가 예외를 명시하지 않는 한 task branch commit + push + PR까지 마쳐야 한다.
+- Never push directly to `main` or `master`.
+- If the session later converges with verified changes, the final converged turn still needs task-branch commit + push + PR unless `PROJECT-RULES.md` explicitly allows a different policy.
+
+## Session Modes
+
+- Autonomous: only ESCALATE reaches the user.
+- Supervised: every convergence needs user confirmation.
+- Hybrid: confirm only when scope is large or confidence is low.
