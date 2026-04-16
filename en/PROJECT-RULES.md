@@ -66,6 +66,10 @@ Specify the minimum verification standard for this repository, for example:
 
 If this repository adopts DAD v2, record the local operating assumptions explicitly, for example:
 
+- whether sessions are expected to be outcome-scoped, and which concrete outcomes count (for example: code changes, measurement artifacts, smoke results, config/runtime decisions, or explicit risk dispositions)
+- whether meta-only sessions are disallowed or must be folded into an active work session (for example: wording-only, summary/state-sync-only, closure-seal-only, validator-noise-only)
+- which cases actually justify a dedicated peer-verification step (for example: remote-visible mutation, config/runtime decision, high-risk measurement, destructive cleanup, provenance/compliance-sensitive work)
+- when recovery/schema-repair sessions are allowed as the exception to the anti-churn rules
 - whether short session-scoped slices are preferred over one long umbrella session
 - when a fresh session should supersede the current one
 - which validators are mandatory before `suggest_done: true`

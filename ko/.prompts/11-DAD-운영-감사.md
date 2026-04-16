@@ -52,6 +52,13 @@
    - user-bridged 비용 관리
    - 반복 실패 패턴
    - 첫 clone / 첫 session bootstrap 위험
+   - outcome-scoped session gate를 명시해야 하는지
+   - peer verification allowlist가 필요한지
+   - wording-only / sync-only / seal-only 턴을 막는 anti-churn 규칙이 필요한지
+7. 최근 세션 기록이 실제 outcome 작업 중심인지, 아니면 meta-only churn인지
+   - wording correction, summary/state sync, closure seal, validator-noise cleanup만을 위해 열린 세션이 있는지
+   - 명확한 risk trigger 없이 반복된 peer-verify-only 턴이 있는지
+   - 제품 artifact, measurement, fix, decision보다 ceremony에 더 많은 턴을 쓰는 세션 체인이 있는지
 
 ## 실행 규칙
 
@@ -61,6 +68,7 @@
 4. 같은 턴에 닫지 못하는 gap은 첫 번째 후속 작업으로 명시한다.
 5. "좋아 보인다" 같은 인상평은 금지하고, 모든 판정은 파일/라인 또는 artifact 근거로만 적는다.
 6. 필요한 파일이 한 번에 읽기엔 너무 크면, 필요한 section만 chunk 단위로 읽고 감사를 계속 진행한다.
+7. meta-only 세션 체인을 generic process-health 판정 안에 숨기지 말고 별도 위험으로 명시한다.
 
 ## 출력 형식
 

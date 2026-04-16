@@ -20,7 +20,9 @@ fi
 "$runner" -ExecutionPolicy Bypass -File en/tools/Validate-CodexSkillMetadata.ps1 -Root en
 "$runner" -ExecutionPolicy Bypass -File en/tools/Lint-StaleTerms.ps1
 "$runner" -ExecutionPolicy Bypass -File en/tools/Validate-DadPacket.ps1 -Root en -AllSessions
+"$runner" -ExecutionPolicy Bypass -File en/tools/Validate-DadBacklog.ps1 -Root en
 "$runner" -ExecutionPolicy Bypass -File ko/tools/Validate-Documents.ps1 -Root ko -IncludeRootGuides -IncludeAgentDocs -ReportLargeDocs -ReportLargeRootGuides -FailOnLargeDocs
 "$runner" -ExecutionPolicy Bypass -File ko/tools/Validate-CodexSkillMetadata.ps1 -Root ko
 "$runner" -ExecutionPolicy Bypass -File ko/tools/Lint-StaleTerms.ps1
 "$runner" -ExecutionPolicy Bypass -File ko/tools/Validate-DadPacket.ps1 -Root ko -AllSessions
+"$runner" -ExecutionPolicy Bypass -File ko/tools/Validate-DadBacklog.ps1 -Root ko

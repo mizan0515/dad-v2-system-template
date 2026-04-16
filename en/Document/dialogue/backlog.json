@@ -1,0 +1,8 @@
+{
+  "schema_version": "dad-v2-backlog",
+  "policy": {
+    "max_now_items": 1,
+    "allow_active_session_without_backlog_link": false
+  },
+  "items": []
+}

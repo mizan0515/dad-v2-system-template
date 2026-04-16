@@ -28,21 +28,26 @@ DAD v2 session start where Codex (this chat) performs Turn 1 and produces a Clau
    - `git status` (current changes)
    - Check recent failing tests, CI records, or local verification logs if available
    - Check repo-specific research / inventory / architecture docs if present
-3. Judge task scope (small / medium / large).
-4. **Execute Turn 1**:
+3. Judge whether the proposed session is outcome-scoped. If the work is only wording correction, state/summary sync, closure seal, or validator-noise cleanup, fold it into the active execution session unless you are explicitly repairing broken DAD state or packet/schema drift.
+4. Judge task scope (small / medium / large).
+5. If `Document/dialogue/state.json` already points to an active session, do not silently open a second one. Continue the active session or supersede/repair the linkage explicitly first.
+6. Create the session through `tools/New-DadSession.ps1` and make sure it links exactly one backlog item in `Document/dialogue/backlog.json`. Auto-bootstrap is only for fresh work when no reusable `now` or equivalent queued candidate already exists.
+7. **Execute Turn 1**:
    a. For large scope → build `task_model` (goals / non-goals / risks / success shape)
    b. Draft the Sprint Contract (for medium/large):
       - Concrete checkpoint list (including verification methods)
       - `reference_prompts` links
+      - At least one checkpoint naming the concrete artifact, verified decision, or risk disposition that justifies opening the session
    c. Plan + execution
    d. Self-iteration loop: self-verify against checkpoints, repeat until satisfied
    e. Save the Turn Packet as `Document/dialogue/sessions/{session-id}/turn-01.yaml`
-5. Initialize/update `Document/dialogue/state.json`:
+8. Initialize/update `Document/dialogue/state.json`:
    - `protocol_version: "dad-v2"`
    - `relay_mode: "user-bridged"`
    - `last_agent: "codex"` (Turn 1 starter)
-6. Save the exact Claude Code-facing prompt to `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`, record that path in `handoff.prompt_artifact`, and set `handoff.ready_for_peer_verification: true` only after `handoff.next_task`, `handoff.context`, and `handoff.prompt_artifact` are all final.
-7. Output the same Claude Code-facing prompt to the user (prompt body only, no CLI wrapper).
+9. If another peer turn remains, use a handoff only for outcome work. Keep `handoff.next_task` for current-session continuation; if newly discovered work needs a different future session, record it in `Document/dialogue/backlog.json` instead. Do not generate a verify-only / wording-only / sync-only / seal-only follow-up unless the remaining work is risk-gated or the DAD system itself needs repair.
+10. Set `handoff.closeout_kind: peer_handoff`, save the exact Claude Code-facing prompt to `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`, record that path in `handoff.prompt_artifact`, and set `handoff.ready_for_peer_verification: true` only after `handoff.next_task`, `handoff.context`, and `handoff.prompt_artifact` are all final.
+11. Output the same Claude Code-facing prompt to the user in the same final reply that closes Turn 1 (prompt body only, no CLI wrapper). Do not stop at a status summary and wait for the user to ask for the next prompt.
    The prompt must include these 7 elements:
    - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
    - `Session: Document/dialogue/state.json`

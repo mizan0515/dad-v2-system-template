@@ -59,7 +59,7 @@ session_id: "$SessionId"
 
 contract:
   status: proposed
-  checkpoints: []
+  checkpoints: []                # 이 세션의 concrete outcome/artifact를 가리키는 checkpoint를 최소 1개 포함
   amendments: []
 
 peer_review:
@@ -76,7 +76,7 @@ peer_review:
 
 my_work:
   # task_model: {}                # recommended for large scope
-  plan: ""
+  plan: ""                       # ceremony-only cleanup이 아니라 실제 outcome 작업을 적는다
   changes:
     files_modified: []
     files_created: []
@@ -90,8 +90,9 @@ my_work:
   confidence: medium
 
 handoff:
-  next_task: ""
-  context: ""
+  closeout_kind: ""              # peer_handoff | final_no_handoff | recovery_resume
+  next_task: ""                  # wording/sync/seal-only 후속 작업이 아니라 concrete remaining work만 적는다
+  context: ""                    # 다음 에이전트가 outcome 작업을 바로 이어받을 수 있게 적는다
   questions: []
   prompt_artifact: ""
   ready_for_peer_verification: false

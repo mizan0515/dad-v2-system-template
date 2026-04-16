@@ -52,6 +52,13 @@ Review at least:
    - user-bridged cost control
    - repeated failure patterns
    - first-clone or first-session bootstrap hazards
+   - explicit outcome-scoped session gates
+   - peer-verification allowlists
+   - anti-churn rules for wording-only / sync-only / seal-only turns
+7. Whether recent session history shows outcome work or meta-only churn
+   - sessions opened only for wording correction, summary/state sync, closure seal, or validator-noise cleanup
+   - peer-verify-only turns without a clear risk trigger
+   - session chains that spend more turns on ceremony than on product artifacts, measurements, fixes, or decisions
 
 ## Execution Rules
 
@@ -61,6 +68,7 @@ Review at least:
 4. If a gap cannot be closed in the same turn, make it the first explicit next task.
 5. Do not write impressionistic verdicts like "looks good". Every judgment needs file or artifact evidence.
 6. If a required file is too large to read in one call, read the needed sections in chunks and continue the audit.
+7. Call out meta-only session chains explicitly instead of hiding them inside a generic process-health verdict.
 
 ## Output Format
 

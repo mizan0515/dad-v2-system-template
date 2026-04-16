@@ -35,6 +35,10 @@ When the user is working with Codex directly:
 - if the task changes DAD infrastructure, validators, slash commands, prompt templates, session schema, or agent contracts, sync the affected system docs in the same task
 - if same-turn doc sync is not possible, make that the first explicit next task
 - use `.prompts/10-system-doc-sync.md` as the default companion prompt for system-doc sync work
+- reserve new DAD sessions for outcome-scoped work that should produce a concrete artifact, verified decision, or explicit risk disposition
+- treat `Document/dialogue/backlog.json` as session-admission metadata, not as an execution log
+- do not open a fresh DAD session only for wording correction, state/summary sync, closure seal, or validator-noise cleanup unless you are explicitly repairing broken DAD state
+- use peer-verify-only turns only when the change is remote-visible, config/runtime-sensitive, measurement-sensitive, destructive, or provenance/compliance-sensitive
 
 Git rules:
 - commit and push after meaningful verified changes
@@ -46,6 +50,10 @@ Git rules:
 
 When collaborating with Claude Code under `DIALOGUE-PROTOCOL.md`:
 
+- treat each DAD session as outcome-scoped work; fold closeout chores into the active execution turn instead of manufacturing a follow-on seal/sync session
+- keep current-session continuation in `handoff.next_task`; use backlog only when the work needs a different session
+- use a dedicated verify-only handoff only when the change is remote-visible, hard to reverse, config/runtime-sensitive, measurement-sensitive, or provenance/compliance-sensitive
+
 1. Read `DIALOGUE-PROTOCOL.md`, then read the needed `Document/DAD/` reference files it points to
 2. Check `Document/dialogue/state.json`
 3. Read the previous turn packet
@@ -54,7 +62,7 @@ When collaborating with Claude Code under `DIALOGUE-PROTOCOL.md`:
 6. Save `turn-{N}.yaml` in `Document/dialogue/sessions/{session-id}/`
 7. If another Claude Code turn remains, save the exact handoff prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md` and record that path in `handoff.prompt_artifact`
 8. Update state
-9. If another Claude Code turn remains, output the same Claude Code prompt in the final reply using the required handoff format
+9. If another Claude Code turn remains, output the same Claude Code prompt in the same final reply that closes the turn, using the required handoff format. Do not stop at a status summary and wait for the user to ask for the next prompt.
 10. If the session converges on this turn, finish the close summary/state work and the git closeout required by `PROJECT-RULES.md` in the same turn. No-next-turn is not a reason to defer commit/push/PR.
 
 If a system-doc drift is discovered, close it in the same turn or make it the first next task.
@@ -70,6 +78,8 @@ When another Claude Code turn remains, every Claude Code prompt must include:
 5. A relay-friendly summary
 6. The mandatory tail block:
 7. The exact text also saved to `handoff.prompt_artifact`
+
+In `user-bridged` mode, the relay prompt is a required same-turn deliverable. A turn that says the prompt was saved or can be provided later is incomplete.
 
 ```
 ---
