@@ -20,17 +20,22 @@ Codex와 Claude Code 간 대칭 턴 기반 Dialogue 세션을 시작한다.
    - 최근 실패 테스트, CI 기록, 또는 로컬 검증 로그가 있으면 확인
    - 저장소 전용 research / inventory / architecture 문서가 있으면 확인
    - 런타임, 에디터, 또는 서비스 로그를 다루는 저장소면 관련 오류 로그를 확인
-3. 작업 scope를 판단한다 (small / medium / large).
-4. **Turn 1을 수행한다**:
+3. 제안된 세션이 outcome-scoped인지 먼저 판별한다. wording correction, state/summary sync, closure seal, validator-noise cleanup만의 작업이면 broken DAD state나 packet/schema drift를 명시적으로 복구하는 경우가 아닌 한 현재 execution session 안으로 흡수한다.
+4. 작업 scope를 판단한다 (small / medium / large).
+5. `Document/dialogue/state.json`이 이미 active session을 가리키면 조용히 두 번째 세션을 열지 않는다. `/repeat-workflow`로 현재 세션을 이어가거나, 먼저 명시적으로 supersede/repair한 뒤 새 세션으로 넘어간다.
+6. `tools/New-DadSession.ps1`로 세션을 생성하고 `Document/dialogue/backlog.json`의 backlog item 하나와 정확히 연결되게 한다. auto-bootstrap은 fresh work이고 재사용할 `now`나 동등한 queued candidate가 없을 때만 허용한다.
+7. **Turn 1을 수행한다**:
    a. Sprint Contract 초안 작성 (medium/large일 때):
       - 구체적 체크포인트 목록 (검증 방법 포함)
       - `reference_prompts` 연결
+      - 왜 이 세션을 여는지 정당화하는 concrete artifact, 검증된 결정, 또는 risk disposition checkpoint를 최소 1개 포함
    b. 계획 수립 + 부분 실행
    c. 자체 반복 루프: 체크포인트 기준 자체 검증, 만족할 때까지 반복
    d. Turn Packet을 `Document/dialogue/sessions/{session-id}/turn-01.yaml`로 저장
-5. `Document/dialogue/state.json` 초기화/업데이트.
-6. 정확한 Codex용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification: true`는 `handoff.next_task`, `handoff.context`, `handoff.prompt_artifact`가 모두 확정된 뒤에만 설정한다.
-7. 같은 Codex용 프롬프트를 사용자에게 출력한다 (CLI 래퍼 없이 프롬프트 본문만).
+8. `Document/dialogue/state.json` 초기화/업데이트.
+9. 다음 peer 턴이 남아 있더라도 handoff는 outcome 작업일 때만 사용한다. 현재 세션 안에서 이어지는 작업만 `handoff.next_task`에 두고, 새로 드러난 다른 future session 작업은 `Document/dialogue/backlog.json`에 기록한다. 남은 작업이 verify-only / wording-only / sync-only / seal-only 정리라면 risk-gated 예외나 DAD 시스템 복구가 아닌 한 새 handoff를 만들지 않는다.
+10. `handoff.closeout_kind: peer_handoff`를 설정하고, 정확한 Codex용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-01-handoff.md`에 저장한 뒤 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification: true`는 `handoff.next_task`, `handoff.context`, `handoff.prompt_artifact`가 모두 확정된 뒤에만 설정한다.
+11. 같은 Codex용 프롬프트를 Turn 1을 닫는 같은 최종 응답에서 사용자에게 출력한다 (CLI 래퍼 없이 프롬프트 본문만). 상태 요약만 남기고 사용자가 다음 프롬프트를 다시 요청하게 만들지 않는다.
    프롬프트에는 반드시 아래 7개 요소를 포함한다:
    - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
    - `Session: Document/dialogue/state.json`

@@ -66,6 +66,13 @@
 
 이 저장소가 DAD v2를 채택한다면, 아래 같은 운영 현실을 별도로 명시한다.
 
+- 세션을 outcome-scoped 단위로 운영할지, 그리고 어떤 산출물을 실제 outcome으로 인정할지
+  - 예: 코드 변경, 측정 artifact, smoke 결과, config/runtime 결정, 명시적 risk disposition
+- meta-only 세션을 금지하거나 active work session 안의 부속 작업으로만 허용할지
+  - 예: wording-only, summary/state-sync-only, closure-seal-only, validator-noise-only
+- 어떤 경우에만 전용 peer verification 단계를 정당화할지
+  - 예: remote-visible mutation, config/runtime decision, high-risk measurement, destructive cleanup, provenance/compliance-sensitive 작업
+- recovery/schema-repair 세션을 anti-churn 예외로 언제 허용할지
 - 하나의 긴 umbrella session보다 짧은 session-scoped slice를 선호하는지
 - 언제 현재 세션을 닫고 새 세션으로 supersede할지
 - `suggest_done: true` 전에 어떤 validator가 필수인지

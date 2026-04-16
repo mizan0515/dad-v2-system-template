@@ -59,7 +59,7 @@ session_id: "$SessionId"
 
 contract:
   status: proposed
-  checkpoints: []
+  checkpoints: []                # include at least one checkpoint naming the concrete outcome/artifact for this session
   amendments: []
 
 peer_review:
@@ -76,7 +76,7 @@ peer_review:
 
 my_work:
   # task_model: {}                # recommended for large scope
-  plan: ""
+  plan: ""                       # describe outcome work, not ceremony-only cleanup
   changes:
     files_modified: []
     files_created: []
@@ -90,8 +90,9 @@ my_work:
   confidence: medium
 
 handoff:
-  next_task: ""
-  context: ""
+  closeout_kind: ""              # peer_handoff | final_no_handoff | recovery_resume
+  next_task: ""                  # concrete remaining work only; avoid wording/sync/seal-only follow-ups
+  context: ""                    # enough detail for the next agent to continue the outcome work directly
   questions: []
   prompt_artifact: ""
   ready_for_peer_verification: false

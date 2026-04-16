@@ -19,7 +19,7 @@ argument-hint: "[턴 수, 기본 5]"
 ## /repeat-workflow와의 차이 (4가지 override)
 
 1. **사용자 확인 최소화** — ESCALATE 외에는 자동 판단
-2. **작업 선택 자율화** — 분석 결과에 따라 가장 가치 있는 작업을 자동 선택
+2. **다음 슬라이스 선택 자율화** — active session과 명시적 사용자 방향 안에서 가장 가치 있는 다음 슬라이스를 고르되, backlog 우선순위를 사용자 의도와 충돌하게 다시 정하지 않는다
 3. **PASS 자동 수렴** — 모든 체크포인트 통과 시 closeout을 자동으로 마무리한다. 이번 턴이 최종 converged 턴이면 같은 턴에서 summary/state와 작업 브랜치 commit + push + PR까지 끝내고, 막히면 구체 blocker를 남긴다.
 4. **정체 시 자동 전환** — 2턴 연속 같은 체크포인트 FAIL 시 다른 접근으로 자동 전환
 
@@ -27,11 +27,16 @@ argument-hint: "[턴 수, 기본 5]"
 
 1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `CLAUDE.md`와 `DIALOGUE-PROTOCOL.md`를 읽는다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
 2. `Document/dialogue/state.json`에서 기존 세션 상태를 확인한다 (없으면 `/dialogue-start`로 새 세션을 시작).
-3. 프로젝트 현재 상태를 자동 분석 (git log, 테스트, 콘솔)
+3. 프로젝트 현재 상태를 자동 분석한다 (git log, 테스트, 콘솔). 다만 명시적 사용자 방향이나 backlog admission 상태를 덮어쓰지는 않는다.
 4. `$ARGUMENTS`턴 (또는 5턴) 자율 실행:
-   - Contract 자동 생성 → 작업 실행 → 자체 반복 → 상대용 프롬프트 artifact 저장 → 다음 턴이 남아 있을 때만 상대용 프롬프트 생성(필수 꼬리말 포함) → 사용자 relay → 다음 턴 또는 최종 턴 수렴 판단
+   - Contract 자동 생성 → 다음 단계가 여전히 outcome-scoped인지 확인 → 작업 실행 → 자체 반복 → 상대용 프롬프트 artifact 저장 → 다음 턴이 남아 있을 때만 상대용 프롬프트 생성(필수 꼬리말 포함) → 사용자 relay → 다음 턴 또는 최종 턴 수렴 판단
    - Turn Packet은 `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`에 저장
-   - 정확한 상대용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification`는 `handoff.next_task`, `handoff.context`가 확정되기 전까지 false로 둔다.
+   - 남은 작업이 wording correction, state/summary sync, closure seal, validator-noise cleanup뿐이면 DAD 시스템 자체를 복구하는 경우가 아닌 한 현재 execution turn 안에서 끝낸다.
+   - 현재 세션 안에서 이어지는 작업만 `handoff.next_task`에 두고, 새로 드러난 다른 future session 작업은 `Document/dialogue/backlog.json`에 기록한다.
+   - 이번 closeout이 세션 종료, block, supersede로 이어지면 linked backlog item도 같은 closeout 경로에서 resolve하거나 재큐잉해서 stale `promoted` owner를 남기지 않는다.
+   - 다음 peer 턴이 남아 있으면 `handoff.closeout_kind: peer_handoff`를 설정하고, 정확한 상대용 프롬프트를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장한 뒤 그 경로를 `handoff.prompt_artifact`에 기록한다. `handoff.ready_for_peer_verification`는 `handoff.next_task`, `handoff.context`, `handoff.prompt_artifact`가 확정되기 전까지 false로 둔다.
+   - dedicated verify-only handoff는 remote-visible, config/runtime-sensitive, measurement-sensitive, destructive, provenance/compliance-sensitive 작업일 때만 사용한다.
+   - 그 동일한 프롬프트를 그 턴을 닫는 같은 응답에서도 바로 출력한다. 사용자가 "다음 프롬프트"를 다시 요청하게 만들지 않는다.
    - 상대용 프롬프트에는 반드시 아래 7개 요소 포함:
      - `Read PROJECT-RULES.md first. Then read AGENTS.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
      - `Session: Document/dialogue/state.json`
@@ -47,7 +52,7 @@ argument-hint: "[턴 수, 기본 5]"
      수정할 것이 없으면 "변경 불필요, PASS"라고 명시하라.
      중요: 관대하게 평가하지 마라. "좋아 보인다" 금지. 구체적 근거와 예시를 들어라.
      ```
-5. 종료 시 `Document/dialogue/sessions/{session-id}/`에 세션 요약 기록
+5. 종료 시 `Document/dialogue/sessions/{session-id}/`에 세션 요약 기록. 최종 converged 턴이면 `handoff.closeout_kind: final_no_handoff`를 설정하고, `recovery_resume`는 인터럽트나 context overflow일 때만 사용한다.
 
 ## 안전 가드
 

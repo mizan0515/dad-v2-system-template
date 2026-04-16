@@ -20,3 +20,4 @@ fi
 "$runner" -ExecutionPolicy Bypass -File tools/Register-CodexSkills.ps1 -Root . -CodexHome "$repo_root/.git/.codex-hook-validate" -ValidateOnly
 "$runner" -ExecutionPolicy Bypass -File tools/Lint-StaleTerms.ps1
 "$runner" -ExecutionPolicy Bypass -File tools/Validate-DadPacket.ps1 -Root . -AllSessions
+"$runner" -ExecutionPolicy Bypass -File tools/Validate-DadBacklog.ps1 -Root .

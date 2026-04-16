@@ -38,7 +38,7 @@ Both variants ship the same building blocks:
 - `.prompts/` reusable prompt library (11 prompts)
 - `tools/` validators and session helpers
 - `.githooks/pre-commit` sample hook
-- `Document/dialogue/` session skeleton
+- `Document/dialogue/` session skeleton plus `backlog.json` admission registry
 - `Document/` reference and operating guides
 
 The source repository itself also includes root maintainer contracts:
@@ -118,7 +118,7 @@ This source repository contains two parallel variants. Validate both the variant
 powershell -ExecutionPolicy Bypass -File tools/Validate-TemplateVariants.ps1 -RunVariantValidators
 ```
 
-This maintainer check runs the variant document validator, Codex skill metadata validator, stale-term lint, DAD packet validator, and a non-mutating Codex skill registration dry-run for both `en/` and `ko/` in one pass. The dry-run does not create links, manifests, or stale-registration cleanup side effects. It also validates the source-repo root contracts for required files, large-doc limits, and broken local Markdown links.
+This maintainer check runs the variant document validator, Codex skill metadata validator, stale-term lint, DAD packet validator, DAD backlog validator, and a non-mutating Codex skill registration dry-run for both `en/` and `ko/` in one pass. The dry-run does not create links, manifests, or stale-registration cleanup side effects. It also validates the source-repo root contracts for required files, large-doc limits, and broken local Markdown links.
 
 To enable the source-repository sample hook:
 

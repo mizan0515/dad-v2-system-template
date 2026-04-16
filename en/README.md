@@ -107,7 +107,7 @@ pwsh -File tools/Validate-Documents.ps1 -Root . -IncludeRootGuides -IncludeAgent
 
 This normalizes document formatting and applies the template BOM policy where appropriate.
 
-One strict exception remains: `.agents/skills/*/SKILL.md` and `agents/openai.yaml` must stay UTF-8 without BOM because Codex Desktop expects YAML and frontmatter to start at byte 0.
+One strict exception remains: `.agents/skills/*/SKILL.md` and `agents/openai.yaml` must stay UTF-8 without BOM because Codex Desktop expects YAML and frontmatter at byte 0. Keep both runtime files ASCII-safe to avoid Windows no-BOM mojibake.
 
 ### 5. Set A Repository-Specific Codex Skill Namespace
 
@@ -120,10 +120,10 @@ pwsh -File tools/Set-CodexSkillNamespace.ps1 -Namespace "your-project-prefix"
 Why this matters:
 
 - the template ships with the reserved namespace `dadtpl-`
-- live repositories should not keep using that shared template prefix
+- live repositories should not keep using that shared prefix
 - the namespace must stay aligned across folder names, frontmatter `name:` values, and desktop registration names
 
-Use a short repository-specific prefix such as `acg-` or another stable project identifier.
+Use a short repository-specific prefix such as `acg-`.
 
 ### 6. Validate Codex Skill Metadata
 
@@ -131,7 +131,7 @@ Use a short repository-specific prefix such as `acg-` or another stable project 
 pwsh -File tools/Validate-CodexSkillMetadata.ps1 -Root .
 ```
 
-Run this before registration or before enabling the sample hook. It catches namespace drift, BOM problems in runtime skill files, and malformed OpenAI metadata before those issues become harder to diagnose.
+Run this before registration or hook enablement. It catches namespace drift, BOM problems, and malformed OpenAI metadata early.
 
 ### 7. Register The Codex Desktop Skills
 
@@ -139,24 +139,19 @@ Run this before registration or before enabling the sample hook. It catches name
 pwsh -File tools/Register-CodexSkills.ps1
 ```
 
-Codex Desktop does **not** auto-discover repository-local `.agents/skills/`.
-
-Registration will:
-
-- validate the skill metadata first
-- link the skills into the `skills` directory under `$CODEX_HOME`
-- clean up stale registrations that point to repositories that no longer exist
+Codex Desktop does **not** auto-discover repository-local `.agents/skills/`. Registration validates metadata, links the skills into `$CODEX_HOME/skills`, and cleans up stale registrations.
 
 Registration refuses to continue while the template namespace `dadtpl-` is still active. Restart Codex Desktop after successful registration.
 
 Keep the skill runtime files strict:
 
 - `.agents/skills/*/SKILL.md` must be UTF-8 without BOM and begin with `---` at byte 0
+- `.agents/skills/*/SKILL.md` should stay ASCII-safe because no-BOM localized prose can be misread on Windows
 - `.agents/skills/*/agents/openai.yaml` must be UTF-8 without BOM, single-document YAML, and ASCII-safe for Desktop display metadata
 
 ### 8. Add Project-Specific Prompts If Needed
 
-If the repository needs more prompts than the shipped pack, add them under `.prompts/`. Keep frequently read root files thin and move detailed operational references into focused documents under `Document/`.
+If the repository needs more prompts, add them under `.prompts/` and keep frequently read root files thin.
 
 ### 9. Create The First Session
 
@@ -168,7 +163,7 @@ pwsh -File tools/New-DadSession.ps1 `
   -Mode hybrid
 ```
 
-This creates the session scaffolding under `Document/dialogue/`. Pick a session ID that is stable and readable.
+This creates the session scaffolding under `Document/dialogue/` and links a backlog item in `Document/dialogue/backlog.json`. If none fits yet, it bootstraps one from the task summary. Use that only for fresh work; if a reusable `now` item already exists, promote it instead.
 
 ### 10. Create The First Turn
 
@@ -179,7 +174,7 @@ pwsh -File tools/New-DadTurn.ps1 `
   -From codex
 ```
 
-Create one turn file per actual agent turn. Prefer generating the packet skeleton with the helper instead of hand-writing it from scratch.
+Create one turn file per turn. Prefer the generated packet skeleton.
 
 ### 11. Record The Exact Handoff Prompt
 
@@ -187,29 +182,31 @@ On every turn closeout that hands work to the peer:
 
 - save the exact peer handoff prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`
 - record that path in `handoff.prompt_artifact`
-- paste the same text in the final reply
+- paste the same text in the same final reply that closes the turn
 
-If the current turn is the final converged closeout, a new peer prompt may be absent. In that case, finish the summary/state artifacts and the git closeout required by `PROJECT-RULES.md` instead of fabricating a handoff artifact.
-
-This keeps the session auditable and lets the next agent reconstruct the real handoff context.
+If the current turn is the final converged closeout, skip the handoff artifact and finish the summary/state artifacts plus the git closeout required by `PROJECT-RULES.md`.
 
 ## Typical Daily Workflow
 
 Once the repository is adapted, the usual operating loop is:
 
-1. open or continue one session for one coherent goal
+1. open or continue one session for one coherent, outcome-scoped goal
 2. create a new turn file whenever the speaking agent changes
 3. let each agent work from the current packet plus the contract docs
-4. save the exact handoff prompt used for the next agent
-5. validate packets before marking the session done
+4. keep current-session continuation in `handoff.next_task`; if future work needs a different session, record it in `Document/dialogue/backlog.json`
+5. save the exact handoff prompt used for the next agent
+6. validate packets before marking the session done
+
+Each session should leave a concrete artifact or decision. Keep wording/sync/seal/validator cleanup inside the active execution session unless the DAD system itself needs repair, reserve verify-only turns for remote-visible, config/runtime-sensitive, measurement-sensitive, destructive, or provenance-sensitive work, and resolve or re-queue the linked backlog item in the same closeout path.
 
 Run packet validation after packet edits and before closing a session:
 
 ```powershell
 pwsh -File tools/Validate-DadPacket.ps1 -Root . -AllSessions
+pwsh -File tools/Validate-DadBacklog.ps1 -Root .
 ```
 
-`Validate-DadPacket.ps1` prints a skip message until the first live session exists. After that, treat it as part of the normal workflow.
+`Validate-DadPacket.ps1` prints a skip message until a live session exists. `Validate-DadBacklog.ps1` checks backlog linkage. Ceremony-only packet warnings are triage, not failure.
 
 Prefer short, session-scoped slices. When the task meaningfully changes, start a fresh session and explicitly close or supersede the previous one.
 
@@ -249,6 +246,7 @@ The sample hook runs:
 - `tools/Register-CodexSkills.ps1 -Root . -CodexHome .git/.codex-hook-validate -ValidateOnly`
 - `tools/Lint-StaleTerms.ps1`
 - `tools/Validate-DadPacket.ps1 -Root . -AllSessions`
+- `tools/Validate-DadBacklog.ps1 -Root .`
 
 The hook's registration dry-run intentionally fails while the reserved template namespace `dadtpl-` is still active. Apply `tools/Set-CodexSkillNamespace.ps1 -Namespace "<repo-prefix>"` before enabling the hook in a downstream repository.
 
@@ -261,13 +259,15 @@ The hook's registration dry-run intentionally fails while the reserved template 
 - Do not assume Codex Desktop will discover `.agents/skills/` automatically.
 - Do not pre-seed fake dialogue sessions in the template.
 - Do not forget to save the exact handoff prompt artifact for each turn that actually hands work to the peer.
+- Do not end an active non-final turn without either a real peer handoff or an explicit `recovery_resume` packet.
 - Do not assume `converged` session state alone means git closeout is done; define the final-turn PR policy in `PROJECT-RULES.md` and enforce it with `.prompts/06-convergence-pr-closeout.md`.
 
 ## Notes
 
-- This template does not include a live session by default.
+- This template does not include a live session.
 - `Document/dialogue/` is intentionally empty except for structure placeholders.
+- `Document/dialogue/backlog.json` is a thin admission registry, not an execution log.
 - `Validate-DadPacket.ps1` prints a skip message until the first live session exists.
 - `Document/dialogue/README.md` documents the expected session layout and summary artifacts.
-- Codex Desktop reads installed skills from the `skills` directory under `$CODEX_HOME`; it does not auto-index repository-local `.agents/skills/` without running the registration helper.
-- The core DAD skills must keep one project-specific namespace prefix. Keep folder names, each skill frontmatter `name:` field, and global registration aligned through `tools/Set-CodexSkillNamespace.ps1`.
+- Codex Desktop reads installed skills from `$CODEX_HOME/skills`; it does not auto-index repository-local `.agents/skills/`.
+- Keep one project-specific DAD skill namespace aligned across folder names, frontmatter `name:` fields, and registration names through `tools/Set-CodexSkillNamespace.ps1`.

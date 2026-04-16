@@ -10,9 +10,20 @@
 
 - DAD v2는 **user-bridged** 워크플로우다. auto 모드는 질문과 수렴 마찰을 줄일 뿐, 사용자 relay 단계를 제거하지 않는다.
 - `Document/dialogue/state.json`은 현재 세션의 source of truth이고, `Document/dialogue/sessions/{session-id}/`는 durable artifact bundle이다.
-- peer prompt도 durable artifact로 취급한다. 실제로 peer handoff를 내보내는 턴에서는 `turn-{N}-handoff.md`로 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한 뒤 같은 본문을 최종 handoff 응답에 그대로 출력한다.
+- `Document/dialogue/backlog.json`은 future session을 고르는 admission layer이지 execution log가 아니다.
+- peer prompt도 durable artifact로 취급한다. 실제로 peer handoff를 내보내는 턴에서는 `turn-{N}-handoff.md`로 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한 뒤 같은 본문을 그 턴을 닫는 최종 handoff 응답에 그대로 출력한다.
+- 사용자가 "다음 프롬프트 달라"고 한 번 더 물어보게 만들지 않는다. 다음 peer 턴이 남아 있으면 relay prompt는 현재 턴 closeout의 일부다.
 - 턴이 진행 중일 때는 `handoff.ready_for_peer_verification`를 false로 유지하고, `handoff.next_task`, `handoff.context`, 저장된 handoff artifact가 모두 확정된 뒤에만 true로 올린다.
+- peer handoff 없이 멈춰야 하지만 수렴도 아닌 경우에는 `handoff.closeout_kind: recovery_resume`를 명시하고, `my_work.confidence: low`와 `open_risks`로 blocker를 설명한다.
 - `DIALOGUE-PROTOCOL.md`는 의도적으로 얇게 유지하고, 상세 스키마와 validation reference는 필요할 때 `Document/DAD/`에서 읽는다.
+- outcome-scoped 세션을 우선한다. 각 세션은 구체적 artifact, 검증된 결정, 또는 명시적 risk disposition을 남기는 것을 목표로 삼는다.
+- current session continuation은 `handoff.next_task`에 두고, 다른 session이 필요한 작업만 backlog로 보낸다.
+- broken DAD state나 packet/schema drift를 명시적으로 복구하는 예외가 아니면 wording correction, summary/state sync, closure seal, validator-noise cleanup만을 위한 새 세션을 열지 않는다.
+- 새 non-recovery session은 backlog item 하나와 정확히 연결되어야 한다. 사용자가 fresh work에서 시작하고 재사용할 `now` item이 없을 때만 `tools/New-DadSession.ps1`가 그 linkage를 auto-bootstrap할 수 있다.
+- active session이 이미 있으면 새로 드러난 future work는 현재 세션을 닫거나 명시적으로 supersede할 때까지 backlog에서 대기시킨다.
+- backlog 우선순위만 논의하는 별도 session이나 peer debate는 열지 않는다. 후보 등록은 active session closeout 안에서 같이 처리한다.
+- 세션이 수렴하거나 blocked되거나 supersede될 때는 같은 closeout 경로에서 linked backlog item도 resolve하거나 재큐잉해서 stale `promoted` owner가 남지 않게 한다.
+- dedicated peer-verify-only 턴은 remote-visible mutation, config/runtime decision, high-risk measurement, destructive cleanup, provenance/compliance-sensitive 작업일 때만 정당화된다.
 - 작업 의미가 바뀌면 하나의 긴 umbrella session보다 짧은 session-scoped slice를 여러 개 닫는 방식을 우선한다.
 - 새 세션이 현재 세션을 대체하면 조용히 방치하지 말고 이전 세션을 명시적으로 close 또는 supersede한다.
 - `.agents/skills/`의 Codex/OpenAI 스킬은 **명시 호출 전용**(`allow_implicit_invocation: false`)으로 설정되어 있으므로 이름으로 직접 호출한다.
@@ -98,6 +109,7 @@ pwsh -File tools/Validate-Documents.ps1 -Root "C:\path\to\target-repo" -IncludeR
 
 ```powershell
 pwsh -File tools/Validate-DadPacket.ps1 -Root . -AllSessions
+pwsh -File tools/Validate-DadBacklog.ps1 -Root .
 ```
 
 ## 운영 원칙
@@ -105,10 +117,13 @@ pwsh -File tools/Validate-DadPacket.ps1 -Root . -AllSessions
 - 루트 계약 문서, command, skill, prompt, validator는 한 시스템으로 본다.
 - 이 중 하나가 바뀌면 관련 문서를 같이 맞춘다.
 - 못 맞추면 다음 작업의 첫 항목으로 명시한다.
+- 세션은 ceremony가 아니라 concrete outcome을 밀어붙일 때만 연다. wording-only, summary/state-sync-only, closure-seal-only, validator-noise-only 작업은 DAD 시스템 자체를 수리하는 경우가 아니면 현재 execution session 안에서 같이 끝낸다.
+- peer verification은 risk-gated 예외다. dedicated verify-only relay는 remote-visible, 되돌리기 어려움, config/runtime-sensitive, measurement-sensitive, destructive, provenance/compliance-sensitive 작업일 때만 쓴다.
 - 목표, 검증 표면, 작업 소유 범위가 바뀌면 하나의 세션을 억지로 늘리지 말고 새 세션을 연다.
 - 종료되거나 supersede된 세션도 `summary.md`와 named closed-session summary를 남긴다.
 - 수렴 직전에는 `.prompts/06-수렴-종료-PR-정리.md`를 기준으로 summary, state, validation, 브랜치 정리를 빠뜨리지 않는다.
 - 세션이 현재 턴에서 수렴하고 더 이상 peer handoff가 남지 않더라도, 같은 턴 담당자가 commit/push/PR을 끝내거나 구체적인 blocker를 남겨야 한다. dialogue closeout과 git closeout은 연결돼 있지만 동일한 단계는 아니다.
+- summary/state sync, closure confirmation, final wording cleanup은 별도 seal 세션이 아니라 같은 턴 closeout 안에서 끝낸다.
 - 일반 재개로 복구할 수 없으면 `.prompts/09-비상-세션-복구.md`를 사용한다.
 - 시스템이 실제로 운용된 뒤 live artifact 기준 운영 감사를 하려면 `.prompts/11-DAD-운영-감사.md`를 사용한다.
 - 이 저장소가 전역 Codex 스킬 링크를 더 이상 소유하지 않아야 하면 `pwsh -File tools/Unregister-CodexSkills.ps1`를 실행하고 Codex Desktop를 재시작한다.

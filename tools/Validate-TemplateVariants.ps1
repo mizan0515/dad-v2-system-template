@@ -31,15 +31,21 @@ $requiredVariantFiles = @(
     'AGENTS.md',
     'CLAUDE.md',
     'Document/DAD/README.md',
+    'Document/DAD/BACKLOG-AND-ADMISSION.md',
     'Document/DAD/PACKET-SCHEMA.md',
     'Document/DAD/STATE-AND-LIFECYCLE.md',
     'Document/DAD/VALIDATION-AND-PROMPTS.md',
+    'Document/dialogue/backlog.json',
+    'tools/Manage-DadBacklog.ps1',
+    'tools/Manage-DadBacklog.sh',
     'tools/Register-CodexSkills.ps1',
     'tools/Register-CodexSkills.sh',
     'tools/Unregister-CodexSkills.ps1',
     'tools/Unregister-CodexSkills.sh',
     'tools/Set-CodexSkillNamespace.ps1',
     'tools/Set-CodexSkillNamespace.sh',
+    'tools/Validate-DadBacklog.ps1',
+    'tools/Validate-DadBacklog.sh',
     'tools/Validate-CodexSkillMetadata.ps1',
     'tools/Validate-CodexSkillMetadata.sh'
 )
@@ -172,6 +178,7 @@ function Get-VariantInvariantIssues([string]$VariantRoot, [string]$VariantName) 
         $protocolText = Get-Content -Raw -Encoding UTF8 $dialogueProtocol
         $requiredProtocolMarkers = @(
             'Document/DAD/README.md',
+            'Document/DAD/BACKLOG-AND-ADMISSION.md',
             'Document/DAD/PACKET-SCHEMA.md',
             'Document/DAD/STATE-AND-LIFECYCLE.md',
             'Document/DAD/VALIDATION-AND-PROMPTS.md'
@@ -331,6 +338,11 @@ if ($RunVariantValidators) {
         & (Join-Path $variantRoot 'tools/Validate-DadPacket.ps1') -Root $variantRoot -AllSessions | Out-Null
         if (-not $?) {
             $issues.Add("Variant DAD packet validation failed for $variantRoot.")
+        }
+
+        & (Join-Path $variantRoot 'tools/Validate-DadBacklog.ps1') -Root $variantRoot | Out-Null
+        if (-not $?) {
+            $issues.Add("Variant DAD backlog validation failed for $variantRoot.")
         }
 
         $tempCodexHome = Join-Path ([System.IO.Path]::GetTempPath()) ("dad-v2-register-validate-" + [System.Guid]::NewGuid().ToString("N"))

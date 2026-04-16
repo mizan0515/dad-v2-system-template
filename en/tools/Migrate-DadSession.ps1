@@ -170,6 +170,7 @@ if ($UpdateState -or $state.session_id -eq $SessionId) {
     Set-StateField -Object $state -Name "last_agent" -Value $latestPacket.From
     Set-StateField -Object $state -Name "contract_status" -Value $latestPacket.ContractStatus
     Set-StateField -Object $state -Name "contract_checkpoints" -Value $latestPacket.Checkpoints
+    Set-StateField -Object $state -Name "origin_backlog_id" -Value $(if ($state.origin_backlog_id) { [string]$state.origin_backlog_id } else { $null })
     Set-StateField -Object $state -Name "packets" -Value @($migratedPacketRefs)
     $updatedJson = $state | ConvertTo-Json -Depth 20
     [System.IO.File]::WriteAllText($statePath, $updatedJson, (New-Object System.Text.UTF8Encoding($true)))
@@ -190,6 +191,7 @@ $sessionState = [ordered]@{
     last_agent = $latestPacket.From
     contract_status = $latestPacket.ContractStatus
     contract_checkpoints = $latestPacket.Checkpoints
+    origin_backlog_id = if ($state.origin_backlog_id) { [string]$state.origin_backlog_id } else { $null }
     packets = @($migratedPacketRefs)
     inferred_from_packets = $true
 }
