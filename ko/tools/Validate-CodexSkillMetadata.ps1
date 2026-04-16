@@ -50,6 +50,14 @@ foreach ($skillDir in $skillDirs) {
         $issues.Add("$skillDoc must start with frontmatter delimiter '---' at byte 0.") | Out-Null
     }
 
+    if ($skillDocText.Contains([char]0xFFFD)) {
+        $issues.Add("$skillDoc contains replacement characters.") | Out-Null
+    }
+
+    if ($skillDocText -match '[^\u0009\u000A\u000D\u0020-\u007E]') {
+        $issues.Add("$skillDoc contains non-ASCII text. Keep Codex SKILL.md runtime files ASCII-safe because they must remain UTF-8 without BOM.") | Out-Null
+    }
+
     $nameMatch = [regex]::Match($skillDocText, '(?m)^name:\s*([a-z0-9][a-z0-9-]*)\s*$')
     if (-not $nameMatch.Success) {
         $issues.Add("$skillDoc is missing a frontmatter name field.") | Out-Null

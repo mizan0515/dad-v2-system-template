@@ -1,55 +1,60 @@
 ---
 name: dadtpl-repeat-workflow
-description: "명시 호출 전용 DAD v2 반복 턴 스킬이다. `$dadtpl-repeat-workflow`로 직접 호출할 때만 사용한다. 진행 중인 세션의 다음 턴을 수행한다."
+description: "Explicit-invocation skill to execute the next turn of an active DAD v2 session. Use when directly invoked via `$dadtpl-repeat-workflow`. Triggers: \"next turn\", \"repeat workflow\", \"continue turn\", \"continue session\". Do not use if no session exists."
 ---
 
 # Repeat Workflow
 
-진행 중인 DAD v2 세션의 다음 턴을 수행한다.
+Execute the next turn of an ongoing DAD v2 session.
 
-## 호출 방식
+## Invocation
 
-- 이 스킬은 명시 호출 전용이다.
-- 예시: `$dadtpl-repeat-workflow로 현재 DAD v2 세션의 다음 턴을 진행하라.`
-- 아직 세션이 없으면 먼저 `$dadtpl-dialogue-start`를 호출한다.
+- This skill is explicit-invocation only.
+- Example: `Run the next turn of the current DAD v2 session via $dadtpl-repeat-workflow.`
+- If no session exists yet, call `$dadtpl-dialogue-start` first.
 
-## 절차
+## Procedure
 
-1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `AGENTS.md`와 `DIALOGUE-PROTOCOL.md`를 읽는다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
-2. `Document/dialogue/state.json`의 기존 세션 상태를 확인한다. 없으면 `$dadtpl-dialogue-start`를 사용하도록 안내한다.
-3. `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`의 이전 turn packet을 읽는다.
-4. 현재 턴을 수행한다.
-   - 상대 작업을 contract checkpoint 기준으로 PASS/FAIL evidence와 함께 검토한다.
-   - 자신의 slice를 실행하고 self-iteration을 수행한다.
-   - `turn-{N}.yaml`을 저장한다.
-   - 다음 peer 턴이 남아 있으면 정확한 peer prompt를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한 뒤 같은 본문을 사용자에게 출력한다.
-   - peer prompt에는 반드시 아래 7개 요소를 포함한다.
+1. Read `PROJECT-RULES.md` first, then read `AGENTS.md` and `DIALOGUE-PROTOCOL.md`. If `DIALOGUE-PROTOCOL.md` points to `Document/DAD/` references, read the needed files there too.
+2. Check the existing session state in `Document/dialogue/state.json`. If it is absent, direct the user to `$dadtpl-dialogue-start`.
+3. Read the previous turn packet from `Document/dialogue/sessions/{session-id}/turn-{N}.yaml`.
+4. Perform the current turn:
+   - Review peer work against the contract checkpoints with PASS/FAIL evidence.
+   - Execute your own slice with self-iteration.
+   - Save `turn-{N}.yaml`.
+   - If the only remaining work is wording correction, state/summary sync, closure seal, or validator-noise cleanup, finish it inside the current execution turn unless the DAD system itself needs repair.
+   - Keep `handoff.next_task` for work that stays inside the current session. If newly discovered work needs a different future session, record it in `Document/dialogue/backlog.json` instead.
+   - If this closeout ends, blocks, or supersedes the session, resolve or re-queue the linked backlog item in the same closeout path rather than leaving a stale `promoted` owner behind.
+   - If another peer turn remains, set `handoff.closeout_kind: peer_handoff`, save the exact peer prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`, record that path in `handoff.prompt_artifact`, and output the same body to the user in the same closeout reply.
+   - Use a dedicated verify-only handoff only when the remaining work is remote-visible, config/runtime-sensitive, measurement-sensitive, destructive, or provenance/compliance-sensitive.
+   - The peer prompt must include these 7 elements:
      - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
      - `Session: Document/dialogue/state.json`
      - `Previous turn: Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
-     - `handoff.next_task + handoff.context` 기반의 구체적 작업 지시
-     - relay-friendly summary
-     - 아래 필수 꼬리말 블록
-     - `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장한 동일한 본문
-5. 수렴을 명시적으로 처리한다.
-   - 다음 peer 턴이 남아 있으면 handoff를 출력하고 세션을 계속한다.
-   - 이번 턴이 최종 converged 턴이고 검증된 변경이 있으면, 같은 턴에서 close summary/state 작업과 task branch commit + push + PR까지 끝낸다. 단, `PROJECT-RULES.md`가 다른 정책을 명시하면 그 정책을 따른다.
-   - commit, push, PR 생성이 막히면 closeout 완료로 처리하지 말고 blocker와 빠진 단계를 정확히 남긴다.
-6. 수렴 시 세션 summary 산출물을 `Document/dialogue/sessions/{session-id}/` 아래에 유지한다.
+     - Concrete task instruction from `handoff.next_task + handoff.context`
+     - A relay-friendly summary
+     - The mandatory tail block below
+     - The exact same body saved in `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`
+5. Handle convergence explicitly:
+   - If another peer turn remains, emit the handoff and continue the session.
+   - If this is the final converged turn with verified changes, set `handoff.closeout_kind: final_no_handoff` and finish the close summary/state work plus task-branch commit + push + PR in the same turn unless `PROJECT-RULES.md` explicitly allows another policy.
+   - If commit, push, or PR creation is blocked, record the exact blocker and missing step instead of calling the closeout complete.
+   - Use `recovery_resume` only when interruption or context overflow prevents a peer handoff on this turn.
+6. On convergence, keep the session summary artifacts under `Document/dialogue/sessions/{session-id}/`.
 
-모든 peer prompt 끝에는 아래 꼬리말을 붙인다.
+Append this tail block at the end of every peer prompt:
 
-```
+```text
 ---
-허점이나 개선점이 있으면 직접 수정하고 diff를 보고하라.
-수정할 것이 없으면 "변경 불필요, PASS"라고 명시하라.
-중요: 관대하게 평가하지 마라. "좋아 보인다" 금지. 구체적 근거와 예시를 들어라.
+If you find any gap or improvement, fix it directly and report the diff.
+If nothing needs to change, state explicitly: "No change needed, PASS".
+Important: do not evaluate leniently. Never say "looks good". Cite concrete evidence and examples.
 ```
 
-## 안전 가드
+## Safety Guards
 
-1. scope 기준 턴 제한을 넘기면 중단한다.
-2. 2턴 연속 품질 정체면 사용자에게 ESCALATE한다.
-3. 같은 checkpoint가 3턴 연속 FAIL이면 자동 중단한다.
-4. 컴파일 에러는 먼저 해결한 뒤 진행한다.
-5. `main`이나 `master`에 직접 push하지 않는다.
+1. Stop when the per-scope turn limit is exceeded.
+2. Two consecutive turns of quality stagnation require ESCALATE to the user.
+3. Three consecutive FAILs on the same checkpoint require auto-stop.
+4. Resolve compile errors before proceeding.
+5. Never push directly to `main` or `master`.

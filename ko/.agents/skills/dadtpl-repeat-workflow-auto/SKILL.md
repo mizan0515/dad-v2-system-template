@@ -1,54 +1,59 @@
 ---
 name: dadtpl-repeat-workflow-auto
-description: "명시 호출 전용 DAD v2 judgment-light 반복 스킬이다. `$dadtpl-repeat-workflow-auto`로 직접 호출할 때 사용한다. 판단은 자동화하지만 user relay 단계는 유지된다."
+description: "Explicit-invocation skill for DAD v2 judgment-light repetition. Use when directly invoked via `$dadtpl-repeat-workflow-auto`. It automates judgment; only ESCALATE reaches the user. Note: the user relay step is still required."
 ---
 
 # Repeat Workflow Auto
 
-진행 중인 DAD v2 세션을 judgment-light 모드로 이어간다.
+Continue an active DAD v2 session in judgment-light mode.
 
-## 호출 방식
+## Invocation
 
-- 이 스킬은 명시 호출 전용이다.
-- 예시: `$dadtpl-repeat-workflow-auto로 현재 DAD v2 세션을 자율 모드로 계속 진행하라.`
-- 아직 세션이 없으면 먼저 `$dadtpl-dialogue-start`를 호출한다.
+- This skill is explicit-invocation only.
+- Example: `Continue the current DAD v2 session in autonomous mode via $dadtpl-repeat-workflow-auto.`
+- If no session exists yet, call `$dadtpl-dialogue-start` first.
 
-## 절차
+## Procedure
 
-1. `PROJECT-RULES.md`를 먼저 읽고, 그다음 `AGENTS.md`와 `DIALOGUE-PROTOCOL.md`를 읽는다. `DIALOGUE-PROTOCOL.md`가 `Document/DAD/` 참조를 가리키면 필요한 파일도 같이 읽는다.
-2. `Document/dialogue/state.json`의 기존 세션 상태를 확인한다. 없으면 `$dadtpl-dialogue-start`를 호출한다.
-3. 현재 프로젝트 상태를 자동 분석한다.
-4. 자율 턴을 수행한다.
-   - contract를 자동 생성하고 작업을 실행한 뒤 self-iteration을 수행한다.
-   - `turn-{N}.yaml`을 저장한다.
-   - 다음 peer 턴이 남아 있으면 정확한 peer prompt를 `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장하고, 그 경로를 `handoff.prompt_artifact`에 기록한 뒤 같은 본문을 사용자에게 출력한다.
-   - peer prompt에는 반드시 아래 7개 요소를 포함한다.
+1. Read `PROJECT-RULES.md` first, then read `AGENTS.md` and `DIALOGUE-PROTOCOL.md`. If `DIALOGUE-PROTOCOL.md` points to `Document/DAD/` references, read the needed files there too.
+2. Check the existing session state in `Document/dialogue/state.json`. If it is absent, call `$dadtpl-dialogue-start`.
+3. Automatically analyze the current project state without overriding explicit user direction or backlog admission state.
+4. Execute autonomous turns:
+   - Auto-generate the contract, verify that the next step is still outcome-scoped, choose the highest-value next slice inside the active session and explicit user direction, execute work, self-iterate, and decide whether another peer turn is needed.
+   - Save `turn-{N}.yaml`.
+   - If the only remaining work is wording correction, state/summary sync, closure seal, or validator-noise cleanup, finish it inside the current execution turn unless the DAD system itself needs repair.
+   - Keep `handoff.next_task` for work that stays inside the current session. If newly discovered work needs a different future session, record it in `Document/dialogue/backlog.json` instead.
+   - If this closeout ends, blocks, or supersedes the session, resolve or re-queue the linked backlog item in the same closeout path rather than leaving a stale `promoted` owner behind.
+   - If another peer turn remains, set `handoff.closeout_kind: peer_handoff`, save the exact peer prompt to `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`, record that path in `handoff.prompt_artifact`, and output the same body to the user in the same closeout reply.
+   - Use a dedicated verify-only handoff only when the remaining work is remote-visible, config/runtime-sensitive, measurement-sensitive, destructive, or provenance/compliance-sensitive.
+   - The peer prompt must include these 7 elements:
      - `Read PROJECT-RULES.md first. Then read CLAUDE.md and DIALOGUE-PROTOCOL.md. If that file points to Document/DAD references, read the needed files there too.`
      - `Session: Document/dialogue/state.json`
      - `Previous turn: Document/dialogue/sessions/{session-id}/turn-{N}.yaml`
-     - `handoff.next_task + handoff.context` 기반의 구체적 작업 지시
-     - relay-friendly summary
-     - 아래 필수 꼬리말 블록
-     - `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`에 저장한 동일한 본문
-5. 수렴을 명시적으로 처리한다.
-   - 최종 턴이 아니면 peer handoff를 출력하고 세션을 계속한다.
-   - 이번 턴이 최종 converged 턴이고 검증된 변경이 있으면, 같은 턴에서 summary/state와 task branch commit + push + PR까지 끝낸다. 단, `PROJECT-RULES.md`가 다른 정책을 명시하면 그 정책을 따른다.
-   - git closeout이 막히면 validator만 통과했다고 종료 완료로 처리하지 말고 blocker와 빠진 단계를 보고한다.
-6. 수렴 시 세션 summary 산출물을 `Document/dialogue/sessions/{session-id}/` 아래에 유지한다.
+     - Concrete task instruction from `handoff.next_task + handoff.context`
+     - A relay-friendly summary
+     - The mandatory tail block below
+     - The exact same body saved in `Document/dialogue/sessions/{session-id}/turn-{N}-handoff.md`
+5. Handle convergence explicitly:
+   - If this is not the final turn, emit the peer handoff and continue.
+   - If this is the final converged turn with verified changes, set `handoff.closeout_kind: final_no_handoff` and finish summary/state updates plus task-branch commit + push + PR in the same turn unless `PROJECT-RULES.md` explicitly says otherwise.
+   - If git closeout is blocked, report the exact blocker and missing step instead of treating validators alone as complete closeout.
+   - Use `recovery_resume` only when interruption or context overflow prevents a peer handoff on this turn.
+6. On convergence, keep the session summary artifacts under `Document/dialogue/sessions/{session-id}/`.
 
-모든 peer prompt 끝에는 아래 꼬리말을 붙인다.
+Append this tail block at the end of every peer prompt:
 
-```
+```text
 ---
-허점이나 개선점이 있으면 직접 수정하고 diff를 보고하라.
-수정할 것이 없으면 "변경 불필요, PASS"라고 명시하라.
-중요: 관대하게 평가하지 마라. "좋아 보인다" 금지. 구체적 근거와 예시를 들어라.
+If you find any gap or improvement, fix it directly and report the diff.
+If nothing needs to change, state explicitly: "No change needed, PASS".
+Important: do not evaluate leniently. Never say "looks good". Cite concrete evidence and examples.
 ```
 
-## 안전 가드
+## Safety Guards
 
-1. 턴 제한을 넘기면 즉시 중단한다.
-2. 같은 checkpoint가 3턴 연속 FAIL이면 자동 중단하고 사용자에게 보고한다.
-3. 해결 불가능한 컴파일 에러면 중단하고 사용자에게 보고한다.
-4. `main`이나 `master`에 직접 push하지 않는다.
-5. 2턴 연속 품질 정체면 자동으로 다른 접근으로 전환한다.
+1. Stop immediately when the turn limit is exceeded.
+2. Three consecutive FAILs on the same checkpoint require auto-stop and a user report.
+3. Unresolvable compile errors require stop and user report.
+4. Never push directly to `main` or `master`.
+5. Two consecutive turns of quality stagnation require an automatic approach change.
