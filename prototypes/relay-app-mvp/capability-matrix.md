@@ -25,7 +25,7 @@ This matrix records what is confirmed locally, what is conditional, and what is 
 | Read category classification | Working | Working | Working | session `read-classify-qa-20260417-180000` — pure `Get-Content 'path'` routed to `read.requested`/`.completed`; piped/scripted compound PowerShell correctly stays `shell` |
 | Codex Windows compatibility matrix | Working | n/a | Working | `codex-windows-matrix.md` — consolidated from shell/git/MCP/DAD live sessions |
 | Phase E tool-rich interactive contract (E1) | Working (edit/test/inspect/summarize all in one turn) | Pending live | Working (handoff-boundary leg pending fresh DAD workspace) | `phase-e-live-1-audit.md`; session `phase-e-edit-test-qa-20260417-200500` — read×19/shell×17/fileChange×1 in Turn 1, unittest fixed and re-run green |
-| Phase E failure-to-handoff recovery (E2) | Implemented (broker-side) | Implemented (broker-side) | Working (no live evidence) | `phase-e-survey.md` — `RelayBroker.cs` repair flow + bounded-fallback downgrade |
+| Phase E failure-to-handoff recovery (E2) | Working (live `repair.requested`/`.completed` end-to-end) | Pending live | Working | `phase-e-live-2-audit.md`; session `phase-e-repair-qa-20260417-210800` — Turn 1 emits bare `done`, broker repairs via `RunRepairAsync`, Codex produces valid marker block on retry; action history preserved |
 
 ## Interpretation
 
