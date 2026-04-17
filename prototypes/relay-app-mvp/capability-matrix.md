@@ -26,6 +26,9 @@ This matrix records what is confirmed locally, what is conditional, and what is 
 | Codex Windows compatibility matrix | Working | n/a | Working | `codex-windows-matrix.md` — consolidated from shell/git/MCP/DAD live sessions |
 | Phase E tool-rich interactive contract (E1) | Working (edit/test/inspect/summarize all in one turn) | Pending live | Working (handoff-boundary leg pending fresh DAD workspace) | `phase-e-live-1-audit.md`; session `phase-e-edit-test-qa-20260417-200500` — read×19/shell×17/fileChange×1 in Turn 1, unittest fixed and re-run green |
 | Phase E failure-to-handoff recovery (E2) | Working (live `repair.requested`/`.completed` end-to-end) | Pending live | Working | `phase-e-live-2-audit.md`; session `phase-e-repair-qa-20260417-210800` — Turn 1 emits bare `done`, broker repairs via `RunRepairAsync`, Codex produces valid marker block on retry; action history preserved |
+| Phase F rolling summary (F1) + summary events (F4) | n/a | n/a | Not implemented | `phase-f-survey.md` — rotation infrastructure exists, but no `summaries/` write and no `summary.*` events |
+| Phase F carry-forward state (F2) | n/a | n/a | Partial (LastHandoff + UpdatedAt + RotationCount only) | `phase-f-survey.md` — Goal/Completed/Pending/Constraints/LastHandoffHash not surfaced as first-class fields |
+| Phase F prompt assembly (F3) | n/a | n/a | Partial (PendingPrompt = LastHandoff.Prompt only) | `phase-f-survey.md` — no rolling-summary or carry-forward injection |
 
 ## Interpretation
 
