@@ -20,7 +20,7 @@ This matrix records what is confirmed locally, what is conditional, and what is 
 | Shell/PowerShell audit | Working | Working | Partial | `shell-audit.md` |
 | Git audit (read-only) | Working | Working | Partial | `git-audit.md` |
 | Git audit (destructive / push / PR) | Pending live | Pending live | Partial | `git-audit.md` (policy verified, live end-to-end pending) |
-| Git category classification on Windows | Pending fix | Working | Gap | `git-audit.md` — Codex PowerShell-wrapping prevents `git*` classification |
+| Git category classification on Windows | Working | Working | Working | verified live in QA session `git-classify-qa-20260417-115929`; `RelayApprovalPolicy.ClassifyCommandCategory` now unwraps `powershell`/`pwsh`/`cmd /c` wrappers and strips `git -c`/`-C` option pairs; Codex adapter refines `commandExecution` items into the specific git class |
 | DAD asset classification | Pending | Pending | Pending | not yet captured in dedicated audit doc |
 | Codex Windows compatibility matrix | Pending | n/a | Pending | not yet captured in dedicated audit doc |
 
@@ -43,6 +43,6 @@ This matrix records what is confirmed locally, what is conditional, and what is 
 1. ~~Shell/PowerShell audit~~ (done)
 2. ~~Git audit (read-only)~~ (done)
 3. Git audit — live destructive / push / PR end-to-end
-4. Fix Codex/Windows PowerShell-wrapping classifier gap
+4. ~~Fix Codex/Windows PowerShell-wrapping classifier gap~~ (done)
 5. DAD asset classification
 6. Codex Windows compatibility matrix

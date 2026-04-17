@@ -127,6 +127,8 @@ Observed consequence in this audit:
 
 This is a real product gap, captured here as a follow-up for the approval-surface work rather than fixed in this audit slice.
 
+**Resolved in follow-up commit.** `RelayApprovalPolicy.ClassifyCommandCategory` now unwraps `"...\powershell.exe" -Command '<inner>'`, `pwsh -Command '<inner>'`, and `cmd /c <inner>` before matching, and it also strips `git -c key=value` / `git -C <path>` option pairs before inspecting the subcommand. The Codex adapter additionally refines `commandExecution` item categorization from the generic `shell` class to the specific git class when the wrapped inner command warrants it. Verified live in QA session `git-classify-qa-20260417-115929`: five wrapped `git ...` commands produced five `git.requested` / five `git.completed` events and the `Latest Git / PR Activity` panel surfaced the activity for the first time on Codex/Windows.
+
 ### Git safe.directory friction still applies
 
 Consistent with the C2 shell audit, all git commands in this audit used an explicit `-c safe.directory=*` override to work around the sandbox-vs-repo-owner mismatch on Windows. Without that override, `git status` fails with "dubious ownership" and the relay surfaces the failure through `shell.completed` with non-zero exit — not as a broker policy denial.
