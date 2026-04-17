@@ -76,6 +76,31 @@
    - `Tool Category Summary` includes `shell`
    - Git may require a repo-local `safe.directory` override because of Windows sandbox ownership differences
 
+## Git audit path (read-only)
+
+1. Use the realistic TaskPulse workspace:
+   - `D:\dad-relay-mvp-temp`
+2. Launch the app and set:
+   - `Working Directory` = `D:\dad-relay-mvp-temp`
+   - interactive adapters enabled
+3. Use a read-only git prompt such as:
+   ```text
+   Read PROJECT-RULES.md first. Then use read-only git commands to inspect the TaskPulse repository without modifying any files. Specifically run: git -c safe.directory=* status --short --branch, git -c safe.directory=* log --oneline -3, git -c safe.directory=* branch --show-current, git -c safe.directory=* diff --stat. Summarize the repository state and hand off to the other side asking them to verify the git inspection. Do not stage, commit, push, or run gh pr create.
+   ```
+4. Click `Start Session`, then `Advance Once`.
+5. Inspect:
+   - `Recent Events`
+   - `Latest Tool Activity`
+   - `Latest Git / PR Activity`
+   - the latest `%LocalAppData%\RelayAppMvp\logs\*.jsonl`
+6. Expect on Codex:
+   - `shell.requested` and `shell.completed` for each git command
+   - no broker approval prompt (read-only git is auto-allowed)
+   - `Latest Git / PR Activity` panel may still show `No git or PR activity yet` — this is the known Windows/PowerShell-wrapping classifier gap recorded in `git-audit.md`
+7. Expect on Claude (direct or relay):
+   - raw `git ...` strings classify cleanly as `git` — the PowerShell-wrapping gap is Codex-specific
+8. Cross-check on disk: repo should remain unchanged — `git -C "D:\dad-relay-mvp-temp" -c safe.directory=* status --short --branch` must still show a clean tree on `master`.
+
 ## What to watch for
 
 - `Codex handle` appears but `Claude handle` does not:
