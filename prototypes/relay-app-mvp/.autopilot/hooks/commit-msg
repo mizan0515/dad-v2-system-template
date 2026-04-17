@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# prototypes/relay-app-mvp/.autopilot/hooks/commit-msg — trailer enforcement entry.
+#
+# Chain:
+#   1. commit-msg-protect.sh → IMMUTABLE-ADD / cleanup-operator-approved gates
+#                              (only engages if commit touches prototypes/relay-app-mvp/**)
+#   2. .githooks/commit-msg → root repo validators if present
+#
+# Argument $1 = path to the commit message file (authoritative, unlike .git/COMMIT_EDITMSG
+# at pre-commit time which is stale under `git commit -m ...`).
+
+set -euo pipefail
+
+here="$(dirname "$0")"
+repo_root="$(git rev-parse --show-toplevel)"
+
+bash "$here/commit-msg-protect.sh" "$@"
+
+if [ -x "$repo_root/.githooks/commit-msg" ]; then
+  exec "$repo_root/.githooks/commit-msg" "$@"
+fi

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# prototypes/relay-app-mvp/.autopilot/hooks/pre-commit — canonical git hook entry.
+#
+# Chain:
+#   1. protect.sh → IMMUTABLE guard + sentinel files + hard-cap on deletes
+#                   (only engages if commit touches prototypes/relay-app-mvp/**)
+#   2. .githooks/pre-commit → root repo validators (docs/Codex/DAD parity)
+#
+# Enable via:
+#   powershell -File prototypes/relay-app-mvp/.autopilot/project.ps1 install-hooks
+#   bash       prototypes/relay-app-mvp/.autopilot/project.sh     install-hooks
+
+set -euo pipefail
+
+here="$(dirname "$0")"
+repo_root="$(git rev-parse --show-toplevel)"
+
+bash "$here/protect.sh" "$@"
+
+if [ -x "$repo_root/.githooks/pre-commit" ]; then
+  exec "$repo_root/.githooks/pre-commit" "$@"
+fi
