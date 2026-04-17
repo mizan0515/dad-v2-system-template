@@ -10,6 +10,7 @@
 - C1/G2: completed a real MCP capability audit for Codex and Claude, added `mcp-audit.md` / `capability-matrix.md`, and tightened MCP review policy so read-only resource discovery and telemetry ping/status auto-clear through broker policy while other MCP activity still pauses for review.
 - C2: completed a real shell/PowerShell capability audit using the TaskPulse DAD workspace, captured live relay shell evidence plus direct Claude shell evidence, and recorded the results in `shell-audit.md` / `capability-matrix.md` / `TESTING-CHECKLIST.md`.
 - C3: completed the read-only tier of the git workflow capability audit. Captured live WPF-driven relay evidence (session `git-audit-20260417-111226`) plus direct Codex and direct Claude git evidence against the TaskPulse workspace, and recorded everything in `git-audit.md` / `capability-matrix.md` / `TESTING-CHECKLIST.md`. Surfaced a real product gap: Codex wraps every Windows command in `powershell.exe -Command '...'`, so `RelayApprovalPolicy.ClassifyCommandCategory` never matches the `git*`/`pr` categories for Codex on Windows, and the destructive-tier git approval flow is therefore currently unreachable for Codex on Windows in practice.
+- C3 follow-up (classifier fix): closed the Codex/Windows PowerShell-wrapping classifier gap. `RelayApprovalPolicy.ClassifyCommandCategory` now unwraps `"...\powershell.exe" -Command '<inner>'`, `pwsh -Command '<inner>'`, and `cmd /c <inner>` before matching on `git`/`git commit`/`git add`/`git push`/`gh pr create`, and strips `git -c key=value` / `git -C <path>` option pairs before subcommand matching. The Codex adapter now also refines `commandExecution` item categorization from the generic `shell` class to the more specific git/git-add/git-commit/git-push/pr class when the wrapped command warrants it.
 
 ### Build status
 - pass 2026-04-17 initial boot build
@@ -20,6 +21,7 @@
 - pass 2026-04-17T10:42:11+09:00 after active session-rule visibility UI updates
 - pass 2026-04-17T10:15:53+09:00 after MCP audit follow-through and MCP default review policy tightening
 - pass 2026-04-17T11:03:00+09:00 baseline build confirmed before starting the git workflow audit
+- pass 2026-04-17T11:57:00+09:00 after Codex/Windows PowerShell-wrapping classifier fix and Codex adapter category refinement
 
 ### Runtime verification
 - Baseline build only. No new runtime verification yet in this session.
@@ -43,15 +45,17 @@
 - Real WPF-driven git audit session `git-audit-20260417-111226` ran in INTERACTIVE mode, completed Codex Turn 1 with 11 `shell.requested`/11 `shell.completed` events (including the five `git ...` commands), and accepted the handoff to Claude with an accurate read-only summary.
 - Direct Codex git audit (`codex exec --json --cd D:/dad-relay-mvp-temp ...`) returned `ok` and each wrapped `powershell.exe -Command 'git ...'` completed with exit 0.
 - Direct Claude git audit (`claude -p ... --output-format stream-json`) returned `ok` using a single compound Bash call chaining the four read-only git commands.
+- Post-fix WPF-driven QA session `git-classify-qa-20260417-115929` ran in INTERACTIVE mode, completed Codex Turn 1 with 5 `git.requested` / 5 `git.completed` events (the five wrapped `git ...` commands) alongside 4 `shell.requested` / 4 `shell.completed` events for the remaining non-git PowerShell commands. The `Latest Git / PR Activity` panel correctly surfaced the git events for the first time on Codex/Windows.
 
 ### Next priority
-- C3 follow-up: live end-to-end exercise of destructive-tier git operations (`git add`, `git commit`, `git push`, `gh pr create`) through the relay, plus closing the Codex/Windows PowerShell-wrapping classifier gap in `RelayApprovalPolicy.ClassifyCommandCategory` so the `git-add` / `git-commit` / `git-push` / `pr` approval classes are actually reachable for Codex on Windows.
+- C3 destructive-tier live exercise: run real `git add` / `git commit` / `git push` / `gh pr create` through the relay (in a disposable branch of the TaskPulse workspace) and capture broker approval behavior end-to-end now that the classifier emits the correct `git-add` / `git-commit` / `git-push` / `pr` categories for Codex on Windows.
 
 ### Loop status
 - 2026-04-17 Session 1 paused after C3 read-only merge (PR #5). Context budget approaching the agreed threshold; resuming the loop on the next scheduled wake-up.
+- 2026-04-17 Session 1 iteration 2: classifier fix shipped as PR #TBD; pausing after merge. Next iteration will take on the destructive-tier live exercise.
 
 ### Blockers or decisions needed
 - Claude remains audit-only by design; no blocker for this session, but full approval parity still depends on a later product decision.
 - Root source-repo validator still fails on the pre-existing `en` variant maintainer path and is unrelated to prototype changes.
 - The shell audit exposed a likely UI refresh timing issue during long-running live turns; final state was correct, but near-real-time state refresh should be re-checked in a follow-up QA slice before treating it as a confirmed product bug.
-- Codex-on-Windows wraps every command in `powershell.exe -Command '...'`, so the current `RelayApprovalPolicy.ClassifyCommandCategory` does not route git/pr work through the dedicated `git-add`/`git-commit`/`git-push`/`pr` approval classes. This is recorded as a follow-up gap rather than a blocker for read-only inspection.
+- ~~Codex-on-Windows wraps every command in `powershell.exe -Command '...'`, so the current `RelayApprovalPolicy.ClassifyCommandCategory` does not route git/pr work through the dedicated `git-add`/`git-commit`/`git-push`/`pr` approval classes.~~ (resolved — classifier now unwraps shell wrappers and adapter refines command-execution items from `shell` to the specific git category; verified live in QA session `git-classify-qa-20260417-115929`).
