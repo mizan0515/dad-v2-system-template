@@ -44,6 +44,7 @@ This matrix records what is confirmed locally, what is conditional, and what is 
 2. ~~Git audit (read-only)~~ (done)
 3. ~~Git audit — live destructive add/commit/push end-to-end~~ (done — `gh pr create` live exercise still pending, blocked on real remote)
 4. ~~Fix Codex/Windows PowerShell-wrapping classifier gap~~ (done)
-5. Honour `AutoApproveAllRequests` for server-originated `item/commandExecution/requestApproval` events in the Codex interactive transport (gap surfaced by destructive-tier exercise)
+5. ~~Honour `AutoApproveAllRequests` for server-originated `item/commandExecution/requestApproval` events in the Codex interactive transport~~ (done — adapter now resolves auto-approve synchronously and emits the correct `accept` decision)
 6. DAD asset classification
 7. Codex Windows compatibility matrix
+8. Git sh.exe / msys pipe-creation failure under the relay's Job Object sandbox (surfaced by the auto-approve push QA — non-blocking for approval flow, but a real Windows compatibility gap)

@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 
-$sessionId = 'destructive-qa-20260417-131500'
+$sessionId = 'auto-approve-push-qa-20260417-143000'
 $logPath = Join-Path $env:LOCALAPPDATA "RelayAppMvp\logs\$sessionId.jsonl"
 
 function Find-AppWindow {
