@@ -19,7 +19,7 @@ This matrix records what is confirmed locally, what is conditional, and what is 
 | MCP pre-execution broker approval | No | No | Not implemented | current product gap |
 | Shell/PowerShell audit | Working | Working | Partial | `shell-audit.md` |
 | Git audit (read-only) | Working | Working | Partial | `git-audit.md` |
-| Git audit (destructive / push / PR) | Pending live | Pending live | Partial | `git-audit.md` (policy verified, live end-to-end pending) |
+| Git audit (destructive / push / PR) | Working (add/commit/push) | Pending live | Partial | `git-audit.md` destructive-tier section; session `destructive-qa-20260417-131500`; PR live exercise still pending |
 | Git category classification on Windows | Working | Working | Working | verified live in QA session `git-classify-qa-20260417-115929`; `RelayApprovalPolicy.ClassifyCommandCategory` now unwraps `powershell`/`pwsh`/`cmd /c` wrappers and strips `git -c`/`-C` option pairs; Codex adapter refines `commandExecution` items into the specific git class |
 | DAD asset classification | Pending | Pending | Pending | not yet captured in dedicated audit doc |
 | Codex Windows compatibility matrix | Pending | n/a | Pending | not yet captured in dedicated audit doc |
@@ -42,7 +42,8 @@ This matrix records what is confirmed locally, what is conditional, and what is 
 
 1. ~~Shell/PowerShell audit~~ (done)
 2. ~~Git audit (read-only)~~ (done)
-3. Git audit — live destructive / push / PR end-to-end
+3. ~~Git audit — live destructive add/commit/push end-to-end~~ (done — `gh pr create` live exercise still pending, blocked on real remote)
 4. ~~Fix Codex/Windows PowerShell-wrapping classifier gap~~ (done)
-5. DAD asset classification
-6. Codex Windows compatibility matrix
+5. Honour `AutoApproveAllRequests` for server-originated `item/commandExecution/requestApproval` events in the Codex interactive transport (gap surfaced by destructive-tier exercise)
+6. DAD asset classification
+7. Codex Windows compatibility matrix

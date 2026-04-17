@@ -187,4 +187,17 @@ Overall: `partial`
 
 2. Live exercise of `git add` / `git commit` / `git push` / `gh pr create` through the relay (and observation of the corresponding `git.add.requested` / `git.commit.requested` / `git.push.requested` / `pr.requested` events and operator approval UI) is still pending. This audit slice deliberately stayed read-only to match the prompt contract.
 
+**Resolved (partial) in destructive-tier live exercise.** WPF-driven QA session `destructive-qa-20260417-131500` against a disposable branch `audit/destructive-20260417` of the TaskPulse workspace, with `AutoApproveAllRequests=true`, produced the following broker-observed events for the wrapped PowerShell git invocations:
+
+- `git.add.requested` + `git.add.completed` (exit 0) for `git -c safe.directory=* add AUDIT-DESTRUCTIVE.md` — Codex's sandbox executed the add directly; no `approval.requested` event reached the broker.
+- `git.commit.requested` + `git.commit.completed` for `git -c safe.directory=* commit -m 'audit: destructive tier marker'` — Codex's sandbox executed the commit directly; no `approval.requested` event reached the broker.
+- `git.push.requested` + `approval.requested` + `approval.queue.enqueued` + `git.push.completed` (status `declined`, `exec command rejected by user`) for `git -c safe.directory=* push origin audit/destructive-20260417` — Codex's sandbox correctly escalated the push as a server `item/commandExecution/requestApproval`, which the broker classified and enqueued. The approval was not resolved within the turn window, so Codex received a decline and the push did not reach the remote.
+
+Key product findings from this exercise:
+
+- The classifier fix is effective end-to-end: destructive git commands surface as the specific `git-add` / `git-commit` / `git-push` events on Codex/Windows despite the PowerShell wrapper.
+- Codex-side sandbox policy decides whether the broker sees an `approval.requested`. For `git add` and `git commit`, Codex runs them directly without asking. Only `git push` (and presumably `gh pr create`) escalates to the broker.
+- `AutoApproveAllRequests=true` did not auto-resolve the approval on this branch. The push approval enqueued and then received the default-deny path after the Codex server-side turn timed out. This is a real product gap: the auto-approve flag is not currently honoured for server-originated `item/commandExecution/requestApproval` events in the Codex interactive transport. Fix candidate: have the broker's approval handler respond with `accept` immediately when `AutoApproveAllRequests` is set, before the operator UI has had a chance to act.
+- `gh pr create` live exercise was not run in this slice; the push path already demonstrates the approval-escalation behavior, and PR creation would need a live GitHub remote, which this disposable local bare-repo setup does not provide.
+
 3. The `LatestGitActivityTextBox` UI panel's "No git or PR activity yet" message during a session that actually ran five git commands is consistent with the classifier gap above but should be revisited after the classifier is fixed, to make sure the panel reflects reality for Codex on Windows.
