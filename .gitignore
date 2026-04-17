@@ -3,3 +3,6 @@
 *.log
 
 # Add project-specific ignores below
+
+# Claude Code local settings (per-developer)
+.claude/settings.local.json
