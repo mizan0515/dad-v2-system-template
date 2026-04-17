@@ -47,6 +47,9 @@
 ### Next priority
 - C3 follow-up: live end-to-end exercise of destructive-tier git operations (`git add`, `git commit`, `git push`, `gh pr create`) through the relay, plus closing the Codex/Windows PowerShell-wrapping classifier gap in `RelayApprovalPolicy.ClassifyCommandCategory` so the `git-add` / `git-commit` / `git-push` / `pr` approval classes are actually reachable for Codex on Windows.
 
+### Loop status
+- 2026-04-17 Session 1 paused after C3 read-only merge (PR #5). Context budget approaching the agreed threshold; resuming the loop on the next scheduled wake-up.
+
 ### Blockers or decisions needed
 - Claude remains audit-only by design; no blocker for this session, but full approval parity still depends on a later product decision.
 - Root source-repo validator still fails on the pre-existing `en` variant maintainer path and is unrelated to prototype changes.
