@@ -24,7 +24,7 @@ This matrix records what is confirmed locally, what is conditional, and what is 
 | DAD asset classification | Working (writes surfaced as `dad-asset`) / Working (pure reads) | Pending live | Working | `dad-asset-audit.md`; session `dad-asset-qa-20260417-145500`; iteration-8 classifier adds `read` category verified in session `read-classify-qa-20260417-180000`; iteration-9 adds dedicated `dad-asset` band verified in session `dad-asset-band-qa-20260417-190000` (2× `dad.asset.requested`/`.completed` for Document/dialogue/**, 1× `file.change.*` for repo-root write) |
 | Read category classification | Working | Working | Working | session `read-classify-qa-20260417-180000` — pure `Get-Content 'path'` routed to `read.requested`/`.completed`; piped/scripted compound PowerShell correctly stays `shell` |
 | Codex Windows compatibility matrix | Working | n/a | Working | `codex-windows-matrix.md` — consolidated from shell/git/MCP/DAD live sessions |
-| Phase E tool-rich interactive contract (E1) | Working (multi-step shell/git/file in one turn) | Pending live | Partial | `phase-e-survey.md` — A7 marker contract + multi-step live evidence; test-runner leg unproven |
+| Phase E tool-rich interactive contract (E1) | Working (edit/test/inspect/summarize all in one turn) | Pending live | Working (handoff-boundary leg pending fresh DAD workspace) | `phase-e-live-1-audit.md`; session `phase-e-edit-test-qa-20260417-200500` — read×19/shell×17/fileChange×1 in Turn 1, unittest fixed and re-run green |
 | Phase E failure-to-handoff recovery (E2) | Implemented (broker-side) | Implemented (broker-side) | Working (no live evidence) | `phase-e-survey.md` — `RelayBroker.cs` repair flow + bounded-fallback downgrade |
 
 ## Interpretation
