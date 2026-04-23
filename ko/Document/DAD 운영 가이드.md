@@ -31,6 +31,7 @@
 - Codex Desktop는 저장소의 `.agents/skills/`를 자동 인덱싱하지 않는다. 먼저 `tools/Set-CodexSkillNamespace.ps1 -Namespace <project-prefix>`를 실행한 뒤 `tools/Register-CodexSkills.ps1`로 `$CODEX_HOME` 아래 `skills` 디렉터리에 등록하고 Codex Desktop를 재시작해야 한다. 재등록 시 원래 저장소 경로가 사라진 stale managed link도 함께 정리한다.
 - 각 스킬의 OpenAI 메타데이터 파일은 ASCII-safe하게 유지한다. display metadata에 locale별 인코딩 drift가 섞이면 Codex/Desktop 등록 표시가 다시 깨질 수 있다.
 - `.agents/skills/*/SKILL.md`와 `.agents/skills/*/agents/openai.yaml`은 UTF-8 without BOM을 유지해야 한다. Codex/Desktop loader는 frontmatter와 YAML이 byte 0에서 바로 시작한다고 가정하므로, 일반 문서용 BOM 정책이 이 런타임 파일을 다시 쓰지 않도록 해야 한다.
+- 대상 저장소가 `autopilot-template`도 함께 쓴다면, compact status artifact와 bounded wait는 바깥 루프 계층에 두고, DAD 계층 산출물은 packet/session 진실에 집중시키는 편이 맞다.
 
 ## 시작 순서
 

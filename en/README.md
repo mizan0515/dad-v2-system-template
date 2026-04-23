@@ -15,6 +15,12 @@ Reusable starter for a Dual-Agent Dialogue v2 workflow where Codex and Claude Co
 
 Use this template when you want a repository to run a structured Codex + Claude Code workflow instead of relying on loose chat history.
 
+In a real deployment this usually sits in the middle of a three-layer stack:
+
+- outer loop/operator control: `autopilot-template`
+- peer runtime/session contract: this template
+- domain code, evidence, dashboards, and governance: the downstream product repo
+
 In a real project, this template gives you:
 
 - root contract files both agents read first
@@ -208,6 +214,10 @@ pwsh -File tools/Validate-DadBacklog.ps1 -Root .
 
 `Validate-DadPacket.ps1` prints a skip message until a live session exists. `Validate-DadBacklog.ps1` checks backlog linkage. Ceremony-only packet warnings are triage, not failure.
 
+If the target repo also uses `autopilot-template`, validate compact operator
+artifacts in that outer layer separately. Keep this DAD validation path focused
+on packet/session truth.
+
 Prefer short, session-scoped slices. When the task meaningfully changes, start a fresh session and explicitly close or supersede the previous one.
 
 ## File Size Design Rule
@@ -216,6 +226,37 @@ Prefer short, session-scoped slices. When the task meaningfully changes, start a
 - Move detailed protocol tables, lifecycle rules, and validation references into focused files under `Document/DAD/`.
 - If a reference file becomes too large, split it by topic again instead of letting one monolithic Markdown file grow without bound.
 - This avoids file-read and token-limit failures such as `file content exceeds maximum allowed tokens` when an agent is instructed to read a required file first.
+
+## Downstream Sync Checklist
+
+When a live project teaches you a new lesson, use this split before upstreaming:
+
+Belongs in `autopilot-template`:
+
+- operator control
+- compact status surfaces
+- wake/sleep or bounded-wait behavior
+- decision-PR control flow
+- generic doctor checks
+
+Belongs in this DAD template:
+
+- packet/state schema rules
+- handoff semantics
+- validator behavior
+- prompt artifact rules
+- peer prompt loading order
+
+Belongs only in the downstream product repo:
+
+- product prompts
+- product dashboards
+- product route heuristics
+- domain evidence wording
+- domain governance or operator wording
+
+Detailed version:
+- `Document/Template-Interaction-Guide.md`
 
 ## Bash Wrappers
 
