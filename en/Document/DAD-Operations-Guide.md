@@ -31,6 +31,7 @@ If you only want the shortest successful onboarding path, follow `README.md` fir
 - Codex Desktop does not auto-index repository-local `.agents/skills/`. First run `tools/Set-CodexSkillNamespace.ps1 -Namespace <project-prefix>`, then register them into the `skills` directory under `$CODEX_HOME` with `tools/Register-CodexSkills.ps1`, then restart Codex Desktop. Re-running the registration also clears stale managed links whose original repository path disappeared.
 - Keep each skill's OpenAI metadata file ASCII-safe. Codex/Desktop skill registration is more reliable when display metadata stays free of locale-specific encoding drift.
 - Keep `.agents/skills/*/SKILL.md` and `.agents/skills/*/agents/openai.yaml` as UTF-8 without BOM. Codex/Desktop loaders expect frontmatter and YAML to start at byte 0, so a document-wide BOM policy must not rewrite these runtime files.
+- If the target repository also uses `autopilot-template`, let the outer loop own compact status artifacts and bounded waits. Keep DAD-layer artifacts focused on packet/session truth rather than product dashboard state.
 
 ## Startup Sequence
 

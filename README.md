@@ -47,6 +47,7 @@ The source repository itself also includes root maintainer contracts:
 - `AGENTS.md`
 - `CLAUDE.md`
 - `DIALOGUE-PROTOCOL.md`
+- `TEMPLATE-INTERACTION.md`
 
 ## How To Use This Repository
 
@@ -132,3 +133,17 @@ git config core.hooksPath .githooks
 - This template keeps root contracts thin and moves detailed DAD rules into `en/Document/DAD/` and `ko/Document/DAD/`.
 - If a frequently read file grows too large, split it by topic instead of relying only on chunked-read fallback behavior.
 - Pre-commit and maintainer checks should fail when frequently read docs grow past the configured large-document threshold, including root maintainer contracts such as `AGENTS.md`, `CLAUDE.md`, and `DIALOGUE-PROTOCOL.md`, so this rule stays enforced instead of becoming advisory only.
+
+## Template Interaction Rules
+
+This template is only one layer in a real deployment stack:
+
+- `autopilot-template` owns the outer loop, operator control, compact status, and doctor discipline
+- `dad-v2-system-template` owns the peer-symmetric session/runtime contract
+- the downstream product repo owns domain prompts, domain validators, domain dashboards, and domain evidence
+
+Upstream here only when the behavior is generic across products.
+Keep product governance, product operator wording, and product-specific routing local by default.
+Use [`TEMPLATE-INTERACTION.md`](./TEMPLATE-INTERACTION.md) as the maintainer
+decision guide for what belongs here versus `autopilot-template` or a
+downstream product repo.

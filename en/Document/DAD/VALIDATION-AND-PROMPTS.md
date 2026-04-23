@@ -61,6 +61,25 @@ If an upgraded downstream repository still has older `final_no_handoff` packets 
 
 `Validate-CodexSkillMetadata.ps1` should also keep runtime `SKILL.md` and `agents/openai.yaml` ASCII-safe because those files must remain UTF-8 without BOM.
 
+## Compact Evidence Discipline
+
+Downstream repositories should prefer compact evidence/status artifacts before
+raw logs, but this template should only standardize compact artifacts when they
+express DAD runtime truth.
+
+Good compact artifacts for DAD-layer checks:
+
+- packet validation result summaries
+- backlog admission result summaries
+- prompt artifact presence/absence checks
+- session closeout consistency markers
+
+Keep product dashboards, product blocker labels, and product remediation wording
+out of the DAD template unless they become truly generic across products.
+Do not overload `Validate-DadPacket.ps1` or `Validate-DadBacklog.ps1` with
+outer-loop compact-status checks; those belong in a separate validator or doctor
+path owned by `autopilot-template` or the downstream product repo.
+
 ## Prompt References
 
 Base references in this template:

@@ -17,6 +17,12 @@ Codex와 Claude Code가 대칭 턴으로 협업하는 Dual-Agent Dialogue v2 워
 
 이 템플릿은 Codex와 Claude Code가 대화 로그에만 의존하지 않고, 세션과 턴 기록을 남기면서 규칙적으로 협업하도록 저장소를 세팅할 때 사용한다.
 
+실전 배치에서는 보통 이 템플릿이 3계층 구조의 가운데에 놓인다:
+
+- 바깥 자동 루프/운영자 제어: `autopilot-template`
+- 피어 런타임/세션 계약: 이 템플릿
+- 도메인 코드, 증거, 대시보드, 운영 정책: downstream 제품 저장소
+
 실제 프로젝트에 넣으면 다음 역할을 한다:
 
 - 두 에이전트가 먼저 읽는 루트 계약 문서를 제공한다
@@ -219,6 +225,37 @@ wording correction, summary/state sync, closure seal, validator-noise cleanup만
 
 peer-verify-only 턴은 현재 변경이 remote-visible, config/runtime-sensitive, measurement-sensitive, destructive, provenance/compliance-sensitive할 때만 사용한다.
 
+## Downstream 동기화 체크리스트
+
+실사용 저장소에서 새 lesson learned가 나왔을 때는 먼저 어디에 올릴지 분리한다:
+
+`autopilot-template`로 가야 하는 것:
+
+- 운영자 제어 방식
+- compact status surface
+- wake/sleep, bounded wait 규칙
+- decision-PR 제어 흐름
+- generic doctor 체크
+
+이 DAD 템플릿으로 가야 하는 것:
+
+- packet/state 스키마 규칙
+- handoff semantics
+- validator 동작
+- prompt artifact 규칙
+- peer prompt loading order
+
+downstream 제품 저장소에 남겨야 하는 것:
+
+- 제품 전용 prompts
+- 제품 전용 dashboards
+- 도메인 evidence wording
+- 제품 route heuristics
+- 제품 governance / operator wording
+
+상세판:
+- `Document/Template-Interaction-Guide.md`
+
 패킷 수정 이후와 세션 종료 전에는 다음 검증을 실행한다:
 
 ```powershell
@@ -229,6 +266,10 @@ pwsh -File tools/Validate-DadBacklog.ps1 -Root .
 `Validate-DadPacket.ps1`는 첫 live 세션이 생기기 전까지는 skip 메시지를 출력한다. 하지만 첫 세션이 만들어진 뒤에는 선택 사항이 아니라 일상 운영 절차의 일부로 보는 편이 맞다.
 
 `Validate-DadBacklog.ps1`는 admission layer와 active-session linkage를 검증한다. packet validator는 `peer_handoff`가 ceremony-only 정리처럼 읽히면 warning을 낼 수도 있다. 이 warning은 hard fail이 아니라 triage 신호이며, 실제 risk-gated verification 단계가 없다면 해당 작업을 현재 execution turn 안에서 끝내라는 뜻에 가깝다.
+
+대상 저장소가 `autopilot-template`도 함께 쓴다면, compact operator artifact
+검증은 바깥 루프 계층에서 별도로 수행한다. 이 DAD 검증 경로는 packet/session
+진실에 집중시키는 편이 맞다.
 
 세션은 짧은 session-scoped slice를 기본으로 잡는다. 작업 의미가 크게 바뀌면 하나의 세션을 억지로 늘리지 말고, 새 세션을 만들고 이전 세션을 명시적으로 close 또는 supersede한다.
 
